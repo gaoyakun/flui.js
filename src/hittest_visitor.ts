@@ -1,6 +1,5 @@
-import { Visitor, visitor } from '../scene';
-import { Vector2 } from '../math';
-import { RMLNode, ElementHittestEvent } from '.';
+import { Visitor, visitor } from './misc';
+import { RMLNode, ElementHittestEvent, Vec2 } from '.';
 
 export class GUIHitTestVisitor extends Visitor {
     private _x: number;
@@ -18,7 +17,7 @@ export class GUIHitTestVisitor extends Visitor {
     @visitor(RMLNode)
     visitElement (w: RMLNode) {
         if (w._isVisible() && !w._isText()) {
-            const v = w.toAbsolute (Vector2.zero());
+            const v = w.toAbsolute ({ x:0, y:0 });
             let x = this._x - v.x;
             let y = this._y - v.y;
             const rc = w.getClippedRect();
@@ -27,8 +26,8 @@ export class GUIHitTestVisitor extends Visitor {
             const cx2 = rc ? rc.x + rc.width : w.getRect().width;
             const cy2 = rc ? rc.y + rc.height : w.getRect().height;
             if (x >= cx1 && x < cx2 && y >= cy1 && y < cy2) {
-                const hittestEvent = new ElementHittestEvent (w, x, y);
-                w.dispatch (ElementHittestEvent.NAME, w, hittestEvent);
+                const hittestEvent = new ElementHittestEvent (x, y);
+                w.dispatchEvent (hittestEvent);
                 if (hittestEvent.allow) {
                     this._hits.push ({
                         element: w,

@@ -1,5 +1,5 @@
 import { RMLElement, RMLNode } from '.';
-import { List, ListIterator } from '../misc/linkedlist';
+import { List, ListIterator } from './misc';
 
 const rIdentifier = /^([^\s\.\*\[\]\|\(\)\$\^\+#><~!=:]+)/;
 const rOp = /^\s*(=|~=|\|=|\^=|\$=|\*=)?\s*/;

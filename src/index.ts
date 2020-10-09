@@ -1,4 +1,7 @@
 export * from './types';
+export * from './font';
+export * from './renderer';
+export * from './atlas_manager';
 export * from './layout';
 export * from './style';
 export * from './texture_atlas';
@@ -18,7 +21,6 @@ export * from './components/text';
 export * from './components/button';
 export * from './components/input';
 export * from './components/select';
-export * from './components/scene_view';
 export * from './components/slider';
 export * from './components/scrollbar';
 export * from './gui_renderer';

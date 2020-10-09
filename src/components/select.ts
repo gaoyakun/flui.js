@@ -1,5 +1,4 @@
-import { Text, GUI, tagname, ElementLayoutEvent, RMLNode, RMLElement, IStyleSheet, TextEvent } from '..';
-import { Vector2 } from '../../math';
+import { Text, GUI, tagname, ElementLayoutEvent, RMLNode, RMLElement, IStyleSheet, Event, TextEvent, Vec2 } from '..';
 
 @tagname ('option')
 export class Option extends RMLElement<Option> {
@@ -81,10 +80,10 @@ export class Select extends RMLElement<Select> {
         this._hiddenInput.style.transformOrigin = 'top';
         this._updateHiddenInput ();
         document.body.appendChild (this._hiddenInput);
-        this.on (ElementLayoutEvent.NAME, null, function (this: Select, eventName: string, data: ElementLayoutEvent) {
+        this.addEventListener (ElementLayoutEvent.NAME, function (this: Select, evt: Event) {
             this._updateHiddenInput ();
         });
-        this.on (TextEvent.NAME_FONT_CHANGE, this, function (this: Select, eventName: string, data: TextEvent) {
+        this.addEventListener (TextEvent.NAME_FONT_CHANGE, function (this: Select, evt: Event) {
             that._updateHiddenInput ();
         });
         const that = this;
@@ -118,8 +117,8 @@ export class Select extends RMLElement<Select> {
     }
     /** @internal */
     _updateHiddenInput () {
-        let el: any = this._uiscene.viewer.canvas;
-        let v = this.toAbsolute(Vector2.zero());
+        let el: any = this._uiscene.renderer.getCanvas();
+        let v = this.toAbsolute({x:0, y:0});
         let t = v.y;
         let l = v.x;
         if (el instanceof HTMLCanvasElement) {

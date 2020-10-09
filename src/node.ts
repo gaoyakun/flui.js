@@ -1,4 +1,6 @@
-import { Vec2, Vec4, Texture, EventTarget, eventtarget, RMLRectPrimitive, RMLPolygonPrimitive, unescapeCSSString, RMLPrimitiveBatchList, RMLElement, RMLDocument, RMLNodeList, RMLLiveNodeList, GUIRenderer, TextureAtlas, GUI, UIRect, UILayout, ElementStyle, IStyleSheet, ValueChangeEvent, ElementLayoutEvent, GUIEvent, DOMTreeEvent, ElementBuildContentEvent, TextContentChangeEvent, Text } from '.';
+import { assert, Font, Vec2, Vec4, Texture, EventTarget, eventtarget, RMLRectPrimitive, RMLPolygonPrimitive, unescapeCSSString, RMLPrimitiveBatchList, RMLElement, RMLDocument, RMLNodeList, RMLLiveNodeList, GUIRenderer, TextureAtlas, GUI, UIRect, UILayout, ElementStyle, IStyleSheet, ValueChangeEvent, ElementLayoutEvent, Event, DOMTreeEvent, ElementBuildContentEvent, TextContentChangeEvent, Text } from '.';
+import { Visitor } from './misc';
+
 
 export interface RMLNode<U = RMLNode<any> > extends EventTarget {}
 
@@ -298,7 +300,7 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
         } else {
             return null;
         }
-        this._dispatchEvent (DOMTreeEvent.NAME_REMOVED, new DOMTreeEvent(this, parent), true);
+        this.dispatchEvent (new DOMTreeEvent(DOMTreeEvent.NAME_REMOVED, parent));
         return this;
     }
     /** @internal */
@@ -478,18 +480,18 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
                 const v = this.toAbsolute ({ x:0, y:0 });
                 this._batchList.x = v.x;
                 this._batchList.y = v.y;
-                const preEvt = new ElementBuildContentEvent (this, this._batchList);
-                this.dispatch (ElementBuildContentEvent.NAME_PREBUILD, this, preEvt);
-                if (preEvt.default) {
+                const preEvt = new ElementBuildContentEvent (ElementBuildContentEvent.NAME_PREBUILD, this._batchList);
+                this.dispatchEvent (preEvt);
+                if (!preEvt.defaultPrevented) {
                     this._buildVertexData ();
-                    const postEvt = new ElementBuildContentEvent (this, this._batchList);
-                    this.dispatch (ElementBuildContentEvent.NAME_POSTBUILD, this, postEvt);
+                    const postEvt = new ElementBuildContentEvent (ElementBuildContentEvent.NAME_POSTBUILD, this._batchList);
+                    this.dispatchEvent (postEvt);
                 }
             }
         }
         this._draw (renderer);
     }
-    toAbsolute (v: Vector2): Vector2 {
+    toAbsolute (v: Vec2): Vec2 {
         return this._layout.toAbsolute (v);
     }
     /** @internal */
@@ -508,7 +510,7 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
         return this._font;
     }
     /** @internal */
-    _getCachedFontColor (): Vector4 {
+    _getCachedFontColor (): Vec4 {
         return this._fontColor || this.parentNode?._getCachedFontColor() || ElementStyle.defaultFontColor;
     }
     /** @internal */
@@ -575,28 +577,43 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
         this._hide = val === 'none';
     }
     /** @internal */
-    _updateBorderLeftColor (val: Vector4): void {
-        this._borderLeftColor.assign (val);
+    _updateBorderLeftColor (val: Vec4): void {
+        this._borderLeftColor.x = val.x;
+        this._borderLeftColor.y = val.y;
+        this._borderLeftColor.z = val.z;
+        this._borderLeftColor.w = val.w;
         this._invalidateContent ();
     }
     /** @internal */
-    _updateBorderTopColor (val: Vector4): void {
-        this._borderTopColor.assign (val);
+    _updateBorderTopColor (val: Vec4): void {
+        this._borderTopColor.x = val.x;
+        this._borderTopColor.y = val.y;
+        this._borderTopColor.z = val.z;
+        this._borderTopColor.w = val.w;
         this._invalidateContent ();
     }
     /** @internal */
-    _updateBorderRightColor (val: Vector4): void {
-        this._borderRightColor.assign (val);
+    _updateBorderRightColor (val: Vec4): void {
+        this._borderRightColor.x = val.x;
+        this._borderRightColor.y = val.y;
+        this._borderRightColor.z = val.z;
+        this._borderRightColor.w = val.w;
         this._invalidateContent ();
     }
     /** @internal */
-    _updateBorderBottomColor (val: Vector4): void {
-        this._borderBottomColor.assign (val);
+    _updateBorderBottomColor (val: Vec4): void {
+        this._borderBottomColor.x = val.x;
+        this._borderBottomColor.y = val.y;
+        this._borderBottomColor.z = val.z;
+        this._borderBottomColor.w = val.w;
         this._invalidateContent ();
     }
     /** @internal */
-    _updateBackgroundColor (val: Vector4): void {
-        this._backgroundColor.assign (val);
+    _updateBackgroundColor (val: Vec4): void {
+        this._backgroundColor.x = val.x;
+        this._backgroundColor.y = val.y;
+        this._backgroundColor.z = val.z;
+        this._backgroundColor.w = val.w;
         this._invalidateContent ();
     }
     /** @internal */
@@ -687,7 +704,7 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
             if (p) {
                 p._insertChild (this, at ? p._childNodes.indexOf (at) : -1);
                 this._disable (p._disableCounter);
-                this._dispatchEvent (DOMTreeEvent.NAME_INSERTED, new DOMTreeEvent(this, p), true);
+                this.dispatchEvent (new DOMTreeEvent(DOMTreeEvent.NAME_INSERTED, p));
             }
         }
         return this;
@@ -725,12 +742,9 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
     }
     /** @internal */
     _onMouseEnter (x: number, y: number) {
-        const cvs = this._uiscene.viewer.canvas;
-        if (cvs instanceof HTMLCanvasElement) {
-            const cursor = this.style.cursor || defaultCursor;
-            if (cursor !== 'auto') {
-                cvs.style.cursor = cursor;
-            }
+        const cursor = this.style.cursor || defaultCursor;
+        if (cursor !== 'auto') {
+            this._uiscene.renderer.setCursorStyle (cursor);
         }
     }
     /** @internal */
@@ -822,8 +836,8 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
                     const v1 = img.uvMin.y;
                     const u2 = img.uvMax.x;
                     const v2 = img.uvMax.y;
-                    const aw = (img.texture.width * (u2 - u1) + 0.5) | 0;
-                    const ah = (img.texture.height * (v2 - v1) + 0.5) | 0;
+                    const aw = (this._uiscene.renderer.getTextureWidth(img.texture) * (u2 - u1) + 0.5) | 0;
+                    const ah = (this._uiscene.renderer.getTextureHeight(img.texture) * (v2 - v1) + 0.5) | 0;
                     const ul = u1 + (u2 - u1) * l;
                     const ur = u1 + (u2 - u1) * r;
                     const vt = v1 + (v2 - v1) * t;
@@ -946,7 +960,7 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
         if (this._layout.changeStamp !== this._layoutChangeStamp) {
             this._layoutChangeStamp = this._layout.changeStamp;
             this._invalidateContent ();
-            this._dispatchEvent (ElementLayoutEvent.NAME, new ElementLayoutEvent(this), false);
+            this.dispatchEvent (new ElementLayoutEvent());
         }
         this._updateScrollState ();
         for (const child of this._childNodes) {
@@ -954,23 +968,8 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
         }
     }
     /** @internal */
-    _notifyTextContentEvents (e?: TextContentChangeEvent) {
-        e = e || new TextContentChangeEvent (this);
-        this._dispatchEvent (TextContentChangeEvent.NAME, e, true);
-    }
-    /** @internal */
-    _dispatchEvent (name: string, e: GUIEvent, propagate: boolean) {
-        this.dispatch (name, this, e);
-        if (propagate) {
-            let p = this._parent;
-            while (p && e.propagate) {
-                p.dispatch (name, p, e);
-                p = p.parentNode;
-            }
-            if (e.propagate) {
-                this._uiscene.dispatch (name, this._uiscene, e);
-            }
-        }
+    _notifyTextContentEvents () {
+        this.dispatchEvent (new TextContentChangeEvent());
     }
     /** @internal */
     _getZIndex (): number {
@@ -1071,7 +1070,8 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
                     (this._hScroll as any).setAttribute ('blockSize', String(blockSize));
                     (this._hScroll as any).setAttribute ('buttonSize', String(buttonSize));
                     this._hScroll._setInternal ();
-                    this._hScroll.on (ValueChangeEvent.NAME, null, (eventName: string, data: ValueChangeEvent) => {
+                    this._hScroll.addEventListener (ValueChangeEvent.NAME, (e: Event) => {
+                        const data: ValueChangeEvent = e as ValueChangeEvent;
                         this.scrollX = data.value;
                     });
                     this.appendChild (this._hScroll);                                
@@ -1102,7 +1102,8 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
                     (this._vScroll as any).setAttribute('blockSize', String(blockSize));
                     (this._vScroll as any).setAttribute('buttonSize', String(buttonSize));
                     this._vScroll._setInternal ();
-                    this._vScroll.on (ValueChangeEvent.NAME, null, (eventName: string, data: ValueChangeEvent) => {
+                    this._vScroll.addEventListener (ValueChangeEvent.NAME, (e: Event) => {
+                        const data: ValueChangeEvent = e as ValueChangeEvent;
                         this.scrollY = data.value;
                     });
                     this.appendChild (this._vScroll);            

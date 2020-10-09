@@ -1,10 +1,5 @@
-import { Viewer, BaseMouseEvent, BaseKeyEvent, MouseButton } from '../device';
-import { eventdispatcher, IEventDispatcher, RunLoop } from '../core';
 import * as Yoga from './typeflex/api';
-import { ImageManager, GUIHitTestVisitor, UILayout, UIRect, RMLNode, RMLElement, Input, RMLDocument, StyleElement, IStyleSheet, parseStyleSheet, DOMTreeEvent, GUIMouseEvent, GUIKeyEvent, GUIFocusEvent, RMLSelector, Rule } from '.';
-import { disposable, Disposable, assert } from '../defs';
-import { Vector2 } from '../math';
-import { FileLoader, LoadManager } from '../asset';
+import { Renderer, ImageManager, GUIHitTestVisitor, UILayout, UIRect, RMLNode, RMLElement, Input, RMLDocument, StyleElement, IStyleSheet, parseStyleSheet, Event, DOMTreeEvent, GUIMouseEvent, GUIKeyEvent, GUIFocusEvent, RMLSelector, Rule, Vec2, assert, EventTarget, eventtarget } from '.';
 
 interface IElementConstructor {
     new (gui: GUI, ...args: any[]): any;
@@ -43,27 +38,26 @@ export function tagname (name: string) {
     }
 }
 
-export interface GUI extends IEventDispatcher<GUI>, Disposable<GUI> {}
+export interface GUI extends EventTarget {}
 
-const deviceMouseEvents = {
-    deviceMouseDown: GUIMouseEvent.NAME_MOUSEDOWN,
-    deviceMouseUp: GUIMouseEvent.NAME_MOUSEUP,
-    deviceMouseMove: GUIMouseEvent.NAME_MOUSEMOVE, 
-    deviceMouseClick: GUIMouseEvent.NAME_MOUSECLICK, 
-    deviceMouseDblClick: GUIMouseEvent.NAME_MOUSEDBLCLICK
-};
+const deviceMouseEvents = [
+    GUIMouseEvent.NAME_MOUSEDOWN,
+    GUIMouseEvent.NAME_MOUSEUP,
+    GUIMouseEvent.NAME_MOUSEMOVE, 
+    GUIMouseEvent.NAME_MOUSECLICK, 
+    GUIMouseEvent.NAME_MOUSEDBLCLICK
+];
 
-const deviceKeyEvents = {
-    deviceKeyDown: GUIKeyEvent.NAME_KEYDOWN,
-    deviceKeyUp: GUIKeyEvent.NAME_KEYUP,
-    deviceKeyPress: GUIKeyEvent.NAME_KEYPRESS
-};
+const deviceKeyEvents = [
+    GUIKeyEvent.NAME_KEYDOWN,
+    GUIKeyEvent.NAME_KEYUP,
+    GUIKeyEvent.NAME_KEYPRESS
+];
 
-@eventdispatcher()
-@disposable()
+@eventtarget()
 export class GUI {
     /** @internal */
-    protected _viewer: Viewer;
+    protected _renderer: Renderer;
     /** @internal */
     protected _imageManager: ImageManager;
     /** @internal */
@@ -96,14 +90,13 @@ export class GUI {
     protected _domTag: number;
     /** @internal */
     protected _baseURI: string;
-    constructor (viewer: Viewer, bounds?: UIRect) {
-        this._viewer = viewer;
-        this._imageManager = new ImageManager (viewer).retain ();
+    constructor (renderer: Renderer, bounds?: UIRect) {
+        this._renderer = renderer;
+        this._imageManager = new ImageManager (this._renderer);
         this._document = null;
         this._focusElement = null;
         this._captureElement = null;
         this._hoverElements = [];
-        this._viewer.eventTarget = this;
         this._layoutDirty = false;
         this._updatingLayout = false;
         this._bounds = bounds ? {...bounds} : null;
@@ -123,41 +116,42 @@ export class GUI {
         this._topLayout.node.setPositionType (Yoga.POSITION_TYPE_ABSOLUTE);
         this._topLayout.node.setPosition (Yoga.EDGE_LEFT, this._bounds ? this._bounds.x : 0);
         this._topLayout.node.setPosition (Yoga.EDGE_TOP, this._bounds ? this._bounds.y : 0);
-        this._topLayout.node.setWidth (this._bounds ? this._bounds.width : viewer.drawingBufferWidth);
-        this._topLayout.node.setHeight (this._bounds ? this._bounds.height : viewer.drawingBufferHeight);
-        this.on ('deviceResize', this, function (this: GUI) {
+        this._topLayout.node.setWidth (this._bounds ? this._bounds.width : this._renderer.getDrawingBufferWidth());
+        this._topLayout.node.setHeight (this._bounds ? this._bounds.height : this._renderer.getDrawingBufferHeight());
+        this.addEventListener ('deviceresize', function (this: GUI) {
             if (!this._bounds) {
-                this._topLayout.node.setWidth (this._viewer.drawingBufferWidth);
-                this._topLayout.node.setHeight (this._viewer.drawingBufferHeight);
+                this._topLayout.node.setWidth (this._renderer.getDrawingBufferWidth());
+                this._topLayout.node.setHeight (this._renderer.getDrawingBufferHeight());
                 this.invalidateLayout ();
-                RunLoop.current()?.scheduleNextFrame (() => {
+                setTimeout (() => {
                     const inputs = this.document.querySelectorAll ('input');
                     for (const input of inputs.values()) {
                         (input as Input)._updateHiddenInput ();
                     }
-                });
+                }, 0);
             }
         });
-        for (const evt in deviceMouseEvents) {
-            this.on (evt, this, function (this: GUI, name: string, e: BaseMouseEvent) {
-                if (evt === 'deviceMouseMove') {
+        for (const evt of deviceMouseEvents) {
+            this.addEventListener (evt, function (this: GUI, e: Event) {
+                const mouseEvent: GUIMouseEvent = e as GUIMouseEvent;
+                if (evt === GUIMouseEvent.NAME_MOUSEMOVE) {
                     let hits: { element:RMLNode, x:number, y:number }[] = null;
                     if (this._captureElement) {
-                        const v = this._captureElement.toAbsolute (Vector2.zero());
-                        hits = [{ element: this._captureElement, x: e.x - v.x, y: e.y - v.y }];
+                        const v = this._captureElement.toAbsolute ({ x:0, y:0 });
+                        hits = [{ element: this._captureElement, x: mouseEvent.x - v.x, y: mouseEvent.y - v.y }];
                     } else {
-                        hits = this.hitTest (e.x, e.y);
+                        hits = this.hitTest (mouseEvent.x, mouseEvent.y);
                     }
-                    if (hits.length === 0 && this._viewer.canvas instanceof HTMLCanvasElement) {
-                        this._viewer.canvas.style.cursor = 'default';
+                    if (hits.length === 0) {
+                        this._renderer.setCursorStyle ('default');
                     }
                     for (let i = 0; i < this._hoverElements.length; i++) {
                         const info = this._hoverElements[i];
                         if (!hits.find (hit => hit.element === info.element)) {
-                            const p = info.element.toAbsolute (Vector2.zero());
-                            info.element._onMouseOut (e.x - p.x, e.y - p.y);
+                            const p = info.element.toAbsolute ({ x:0, y:0 });
+                            info.element._onMouseOut (mouseEvent.x - p.x, mouseEvent.y - p.y);
                             if (info.element.enabled) {
-                                info.element.dispatch (GUIMouseEvent.NAME_MOUSEOUT, info.element, new GUIMouseEvent(info.element, e.x - p.x, e.y - p.y, e));
+                                info.element.dispatchEvent (new GUIMouseEvent(GUIMouseEvent.NAME_MOUSEOUT, mouseEvent.x - p.x, mouseEvent.y - p.y, mouseEvent.button, mouseEvent.keymod));
                             }
                         }
                     }
@@ -166,7 +160,7 @@ export class GUI {
                         if (!this._hoverElements.find (hit => hit.element === info.element)) {
                             info.element._onMouseIn (info.x, info.y);
                             if (info.element.enabled) {
-                                info.element.dispatch (GUIMouseEvent.NAME_MOUSEIN, info.element, new GUIMouseEvent(info.element, info.x, info.y, e));
+                                info.element.dispatchEvent (new GUIMouseEvent(GUIMouseEvent.NAME_MOUSEIN, info.x, info.y, mouseEvent.button, mouseEvent.keymod));
                             }
                         }
                     }
@@ -174,62 +168,63 @@ export class GUI {
                     const newHover = hits.length > 0 ? hits[0] : null;
                     if (lastHover?.element !== newHover?.element) {
                         if (lastHover) {
-                            const p = lastHover.element.toAbsolute (Vector2.zero());
-                            lastHover.element._onMouseLeave (e.x - p.x, e.y - p.y);
+                            const p = lastHover.element.toAbsolute ({ x:0, y:0 });
+                            lastHover.element._onMouseLeave (mouseEvent.x - p.x, mouseEvent.y - p.y);
                             if (lastHover.element.enabled) {
-                                lastHover.element.dispatch (GUIMouseEvent.NAME_MOUSELEAVE, lastHover.element, new GUIMouseEvent(lastHover.element, e.x - p.x, e.y - p.y, e));
+                                lastHover.element.dispatchEvent (new GUIMouseEvent(GUIMouseEvent.NAME_MOUSELEAVE, mouseEvent.x - p.x, mouseEvent.y - p.y, mouseEvent.button, mouseEvent.keymod));
                             }
                         }
                         if (newHover) {
                             newHover.element._onMouseEnter (newHover.x, newHover.y);
                             if (newHover.element.enabled) {
-                                newHover.element.dispatch (GUIMouseEvent.NAME_MOUSEENTER, newHover.element, new GUIMouseEvent(newHover.element, newHover.x, newHover.y, e));
+                                newHover.element.dispatchEvent (new GUIMouseEvent(GUIMouseEvent.NAME_MOUSEENTER, newHover.x, newHover.y, mouseEvent.button, mouseEvent.keymod));
                             }
                         }
                     }
                     this._hoverElements = hits;
                 }
                 if (this._hoverElements.length > 0) {
-                    const we = new GUIMouseEvent(this._hoverElements[0].element, this._hoverElements[0].x, this._hoverElements[0].y, e)
-                    const eventname = deviceMouseEvents[evt];
-                    if (we.button === MouseButton.LEFT) {
-                        if (eventname === GUIMouseEvent.NAME_MOUSEDOWN) {
+                    if (mouseEvent.button === 1) {
+                        if (evt === GUIMouseEvent.NAME_MOUSEDOWN) {
                             this._hoverElements[0].element._onMouseDown (this._hoverElements[0].x, this._hoverElements[0].y);
                             this.setFocus (this._hoverElements[0].element.enabled ? this._hoverElements[0].element : null);
-                        } else if (eventname === GUIMouseEvent.NAME_MOUSEUP) {
+                        } else if (evt === GUIMouseEvent.NAME_MOUSEUP) {
                             this._hoverElements[0].element._onMouseUp (this._hoverElements[0].x, this._hoverElements[0].y);
                         }
                     }
                     for (const info of this._hoverElements) {
-                        if (!we.propagate) {
-                            break;
-                        }
                         if (!info.element.enabled) {
                             continue;
                         }
-                        we.x = info.x;
-                        we.y = info.y;
-                        info.element.dispatch (eventname, info.element, we);
+                        const me = new GUIMouseEvent(evt, info.x, info.y, mouseEvent.button, mouseEvent.keymod);
+                        info.element.dispatchEvent (me);
+                        if (me.cancelBubble) {
+                            break;
+                        }
                     }
                 }
             });
         }
-        for (const evt in deviceKeyEvents) {
-            this.on (evt, this, function (this: GUI, name: string, e: BaseKeyEvent) {
+        for (const evt of deviceKeyEvents) {
+            this.addEventListener (evt, function (this: GUI, e: Event) {
+                const keyEvent = e as GUIKeyEvent;
                 if (this._focusElement && this._focusElement.enabled) {
                     let node = this._focusElement;
-                    const we = new GUIKeyEvent (node, e);
-                    while (node && we.propagate) {
-                        node.dispatch (deviceKeyEvents[evt], node, we);
-                        const parent = node.parentNode;
-                        node = parent;
+                    while (node) {
+                        const ke = new GUIKeyEvent (evt, keyEvent.key, keyEvent.name, keyEvent.charCode, keyEvent.repeat, keyEvent.keymod);
+                        node.dispatchEvent (ke);
+                        if (ke.cancelBubble) {
+                            break;
+                        }
+                        node = node.parentNode;
                     }
                 }
             });
         }
-        this.on ([DOMTreeEvent.NAME_INSERTED, DOMTreeEvent.NAME_REMOVED], null, (name: string, data: DOMTreeEvent) => {
+        const domChangeFunc = function (this: GUI, e: Event) {
+            const data: DOMTreeEvent = e as DOMTreeEvent;
             this._domTag++;
-            if (data.target.nodeType === RMLNode.ELEMENT_NODE) {
+            if ((data.target as RMLNode).nodeType === RMLNode.ELEMENT_NODE) {
                 const el: RMLElement = data.target as RMLElement;
                 if (el.tagName === 'style' || el.querySelectorAll ('style')) {
                     this.requireFullStyleRefresh ();
@@ -244,7 +239,9 @@ export class GUI {
                     }
                 }
             }
-        });
+        };
+        this.addEventListener (DOMTreeEvent.NAME_INSERTED, domChangeFunc);
+        this.addEventListener (DOMTreeEvent.NAME_REMOVED, domChangeFunc);
         this._document = new RMLDocument (this);
         this._topLayout.appendChild (this._document._getLayout());
         const root = this._document.createElement ('html');
@@ -254,8 +251,8 @@ export class GUI {
         this.invalidateLayout ();
         this.requireFullStyleRefresh ();
     }
-    get viewer () {
-        return this._viewer;
+    get renderer () {
+        return this._renderer;
     }
     get bounds (): UIRect {
         return this._bounds;
@@ -264,8 +261,8 @@ export class GUI {
         this._bounds = rect ? {...rect} : null;
         this._topLayout.node.setPosition (Yoga.EDGE_LEFT, this._bounds ? this._bounds.x : 0);
         this._topLayout.node.setPosition (Yoga.EDGE_TOP, this._bounds ? this._bounds.y : 0);
-        this._topLayout.node.setWidth (this._bounds ? this._bounds.width : this._viewer.drawingBufferWidth);
-        this._topLayout.node.setHeight (this._bounds ? this._bounds.height : this._viewer.drawingBufferHeight);
+        this._topLayout.node.setWidth (this._bounds ? this._bounds.width : this._renderer.getDrawingBufferWidth());
+        this._topLayout.node.setHeight (this._bounds ? this._bounds.height : this._renderer.getDrawingBufferHeight());
         this.invalidateLayout ();
     }
     get baseURI (): string {
@@ -287,13 +284,18 @@ export class GUI {
         node = node || null;
         if (node !== this._focusElement) {
             if (this._focusElement) {
-                this._focusElement.emit (GUIFocusEvent.NAME_BLUR, this._focusElement, new GUIFocusEvent(this._focusElement));
+                const focusElement = this._focusElement;
+                setTimeout (()=>{
+                    focusElement.dispatchEvent (new GUIFocusEvent(GUIFocusEvent.NAME_BLUR));
+                }, 0);
             }
             if (node) {
-                node.emit (GUIFocusEvent.NAME_FOCUS, node, new GUIFocusEvent(node));
+                setTimeout (()=>{
+                    node.dispatchEvent (new GUIFocusEvent(GUIFocusEvent.NAME_FOCUS));
+                }, 0);
             }
             this._focusElement = node;
-            this.dispatch (DOMTreeEvent.NAME_FOCUSED, this, new DOMTreeEvent (node, null));
+            this.dispatchEvent (new DOMTreeEvent (DOMTreeEvent.NAME_FOCUSED, null));
         }
     }
     getCapture () {
@@ -303,7 +305,7 @@ export class GUI {
         this._captureElement = node || null;
     }
     dispose () {
-        this._imageManager?.release ();
+        this._imageManager?.dispose ();
         this._imageManager = null;
     }
     invalidateLayout () {

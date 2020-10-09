@@ -1,146 +1,127 @@
-import { MouseButton, BaseMouseEvent, Key, BaseKeyEvent } from '../device';
-import { RMLNode, RMLElement, RMLPrimitiveBatchList } from '.';
+import { RMLNode, RMLPrimitiveBatchList, Event } from '.';
 
-export class GUIEvent {
-    target: RMLNode;
-    propagate: boolean;
-    default: boolean;
-    constructor (target: RMLNode) {
-        this.target = target;
-        this.propagate = true;
-        this.default = true;
-    }
-    stopPropagation () {
-        this.propagate = false;
-    }
-    preventDefault () {
-        this.default = false;
-    }
-}
-
-export class GUIMouseEvent extends GUIEvent {
-    static readonly NAME_MOUSEDOWN = 'mouseDown';
-    static readonly NAME_MOUSEUP = 'mouseUp';
-    static readonly NAME_MOUSEMOVE = 'mouseMove';
-    static readonly NAME_MOUSECLICK = 'mouseClick';
-    static readonly NAME_MOUSEDBLCLICK = 'mouseDblClick';
-    static readonly NAME_MOUSEENTER = 'mouseEnter';
-    static readonly NAME_MOUSELEAVE = 'mouseLeave';
-    static readonly NAME_MOUSEIN = 'mouseIn';
-    static readonly NAME_MOUSEOUT = 'mouseOut';
+export class GUIMouseEvent extends Event {
+    static readonly NAME_MOUSEDOWN = 'mousedown';
+    static readonly NAME_MOUSEUP = 'mouseup';
+    static readonly NAME_MOUSEMOVE = 'mousemove';
+    static readonly NAME_MOUSECLICK = 'click';
+    static readonly NAME_MOUSEDBLCLICK = 'dblclick';
+    static readonly NAME_MOUSEENTER = 'mouseenter';
+    static readonly NAME_MOUSELEAVE = 'mouseleave';
+    static readonly NAME_MOUSEIN = 'mousein';
+    static readonly NAME_MOUSEOUT = 'mouseout';
     x: number;
     y: number;
-    button: MouseButton;
+    button: number;
     keymod: number;
-    constructor (target: RMLNode, x: number, y: number, evt: BaseMouseEvent) {
-        super (target);
-        this.target = target;
+    constructor (type: string, x: number, y: number, button: number, keymod: number) {
+        super (type, { bubbles: true, cancelable: true });
         this.x = x;
         this.y = y;
-        this.button = evt.button;
-        this.keymod = evt.keymod;
+        this.button = button;
+        this.keymod = keymod;
     }
 }
 
-export class GUIKeyEvent extends GUIEvent {
-    static readonly NAME_KEYDOWN = 'keyDown';
-    static readonly NAME_KEYUP = 'keyUp';
-    static readonly NAME_KEYPRESS = 'keyPress';
-    key: Key;
+export class GUIKeyEvent extends Event {
+    static readonly NAME_KEYDOWN = 'keydown';
+    static readonly NAME_KEYUP = 'keyup';
+    static readonly NAME_KEYPRESS = 'keypress';
+    key: number;
     name: string;
     charCode: number;
     repeat: boolean;
     keymod: number;
-    constructor (target: RMLNode, evt: BaseKeyEvent) {
-        super (target);
-        this.key = evt.key;
-        this.name = evt.name;
-        this.charCode = evt.charCode;
-        this.repeat = evt.repeat;
-        this.keymod = evt.keymod;
+    constructor (type: string, key: number, name: string, charcode: number, repeat: boolean, keymod: number) {
+        super (type, { bubbles: true, cancelable: true });
+        this.key = key;
+        this.name = name;
+        this.charCode = charcode;
+        this.repeat = repeat;
+        this.keymod = keymod;
     }
 }
 
-export class GUIFocusEvent extends GUIEvent {
+export class GUIFocusEvent extends Event {
     static readonly NAME_FOCUS = 'focus';
     static readonly NAME_BLUR = 'blur';
-    constructor (target: RMLNode) {
-        super (target);
+    constructor (type: string) {
+        super (type);
     }
 }
 
-export class ElementLayoutEvent extends GUIEvent {
+export class ElementLayoutEvent extends Event {
     static readonly NAME = 'layout';
-    constructor (target: RMLNode) {
-        super (target);
+    constructor () {
+        super (ElementLayoutEvent.NAME);
     }
 }
 
-export class ElementBuildContentEvent extends GUIEvent {
+export class ElementBuildContentEvent extends Event {
     static readonly NAME_PREBUILD = 'prebuildcontent';
     static readonly NAME_POSTBUILD = 'postbuildcontent';
     batchList: RMLPrimitiveBatchList;
-    constructor (target: RMLNode, batchList: RMLPrimitiveBatchList) {
-        super (target);
+    constructor (type: string, batchList: RMLPrimitiveBatchList) {
+        super (type);
         this.batchList = batchList;
     }
 }
 
-export class ElementHittestEvent extends GUIEvent {
+export class ElementHittestEvent extends Event {
     static readonly NAME = 'hittest';
     x: number;
     y: number;
     allow: boolean;
-    constructor (target: RMLNode, x: number, y: number) {
-        super (target);
+    constructor (x: number, y: number) {
+        super (ElementHittestEvent.NAME);
         this.x = x;
         this.y = y;
         this.allow = true;
     }
 }
 
-export class TextEvent extends GUIEvent {
-    static readonly NAME_CONTENT_CHANGE = 'textContentChange';
-    static readonly NAME_FONT_CHANGE = 'textFontChange';
-    constructor (target: RMLNode) {
-        super (target);
+export class TextEvent extends Event {
+    static readonly NAME_CONTENT_CHANGE = 'textcontentchange';
+    static readonly NAME_FONT_CHANGE = 'textfontchange';
+    constructor (type: string) {
+        super (type);
     }
 }
 
-export class ValueChangeEvent extends GUIEvent {
-    static readonly NAME = 'valueChange';
+export class ValueChangeEvent extends Event {
+    static readonly NAME = 'valuechange';
     value: number;
-    constructor (target: RMLNode, value: number) {
-        super (target);
+    constructor (value: number) {
+        super (ValueChangeEvent.NAME);
         this.value = value;
     }
 }
 
-export class AttributeChangeEvent extends GUIEvent {
-    static readonly NAME = 'attributeChange';
+export class AttributeChangeEvent extends Event {
+    static readonly NAME = 'attributechange';
     name: string;
     removed: boolean;
-    constructor (target: RMLElement, name: string, removed: boolean) {
-        super (target);
+    constructor (name: string, removed: boolean) {
+        super (AttributeChangeEvent.NAME);
         this.name = name;
         this.removed = removed;
     }
 }
 
-export class TextContentChangeEvent extends GUIEvent {
-    static readonly NAME = 'elementTextContentChange';
-    constructor (target: RMLNode) {
-        super (target);
+export class TextContentChangeEvent extends Event {
+    static readonly NAME = 'elementtextcontentchange';
+    constructor () {
+        super (TextContentChangeEvent.NAME, { bubbles: true, cancelable: true });
     }
 }
 
-export class DOMTreeEvent extends GUIEvent {
-    static readonly NAME_INSERTED = 'elementInserted';
-    static readonly NAME_REMOVED = 'elementRemoved';
-    static readonly NAME_FOCUSED = 'elementFocused';
+export class DOMTreeEvent extends Event {
+    static readonly NAME_INSERTED = 'elementinserted';
+    static readonly NAME_REMOVED = 'elementremoved';
+    static readonly NAME_FOCUSED = 'elementfocused';
     parent: RMLNode;
-    constructor (target: RMLNode, parent: RMLNode) {
-        super (target);
+    constructor (type: string, parent: RMLNode) {
+        super (type, { bubbles: type !== DOMTreeEvent.NAME_FOCUSED, cancelable: type !== DOMTreeEvent.NAME_FOCUSED });
         this.parent = parent;
     }
 }

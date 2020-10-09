@@ -1,4 +1,4 @@
-import { Vector4 } from '../math';
+import { Vec4 } from './types';
 import * as Yoga from './typeflex/api';
 
 const colorNames = { aliceblue:'#f0f8ff',antiquewhite:'#faebd7',aqua:'#00ffff',aquamarine:'#7fffd4',azure:'#f0ffff',beige:'#f5f5dc',bisque:'#ffe4c4',
@@ -359,8 +359,8 @@ interface ILayout {
     updateFontSize (val: string): void;
     updateFontFamily (val: string): void;
     updateFontColor (val: string): void;
-    updateBorderColor (edge: number, val: Vector4): void;
-    updateBackgroundColor (val: Vector4): void;
+    updateBorderColor (edge: number, val: Vec4): void;
+    updateBackgroundColor (val: Vec4): void;
     updateBorder (val: number): void;
     invalidateLayout (): void;
 }
@@ -390,14 +390,14 @@ export class ElementStyle {
         this._stylesheet = {};
         this._setNonInline = false;
     }
-    static get defaultBackgroundColor(): Vector4 {
-        return Vector4.zero();
+    static get defaultBackgroundColor(): Vec4 {
+        return { x:0, y:0, z:0, w:0 };
     }
-    static get defaultBorderColor(): Vector4 {
-        return new Vector4(0,0,0,1);
+    static get defaultBorderColor(): Vec4 {
+        return { x:0,y:0,z:0,w:1 };
     }
-    static get defaultFontColor(): Vector4 {
-        return new Vector4(0,0,0,1);
+    static get defaultFontColor(): Vec4 {
+        return { x:0,y:0,z:0,w:1 };
     }
     get display (): string {
         return this._stylesheet.display || '';
@@ -1554,25 +1554,25 @@ export class ElementStyle {
         this._setNonInline = false;
     }
     /** @internal */
-    parseColor(input: string): Vector4 {
+    parseColor(input: string): Vec4 {
         input = input.trim ().toLowerCase ();
         input = colorNames[input] || input;
         if (input.substr(0,1)=='#') {
             const collen = (input.length - 1) / 3;
             const fact = [17, 1 , 0.062272][collen-1];
-            const v = new Vector4 (parseInt(input.substr(1,collen),16)*fact/255,
-                parseInt(input.substr(1+collen,collen),16)*fact/255,
-                parseInt(input.substr(1+2*collen,collen),16)*fact/255, 1);
-            return v.isNaN () ? null : v;
+            const v = { x: parseInt(input.substr(1,collen),16)*fact/255,
+                y: parseInt(input.substr(1+collen,collen),16)*fact/255,
+                z: parseInt(input.substr(1+2*collen,collen),16)*fact/255, w: 1 };
+            return (Number.isNaN(v.x)||Number.isNaN(v.y)||Number.isNaN(v.z)||Number.isNaN(v.w)) ? null : v;
         } else {
-            let v: Vector4 = null;
+            let v: Vec4 = null;
             let m: RegExpMatchArray;
             if (m = input.match(/^\s*rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)\s*$/i)) {
-                v = new Vector4(Number(m[1])/255, Number(m[2])/255, Number(m[3])/255, 1);
+                v = { x:Number(m[1])/255, y:Number(m[2])/255, z:Number(m[3])/255, w:1 };
             } else if (m = input.match(/^\s*rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)\s*$/i)) {
-                v = new Vector4(Number(m[1])/255, Number(m[2])/255, Number(m[3])/255, Number(m[4])/255);
+                v = { x:Number(m[1])/255, y:Number(m[2])/255, z:Number(m[3])/255, w:Number(m[4])/255 };
             }
-            return (!v || v.isNaN ()) ? null : v;
+            return (!v || Number.isNaN(v.x) || Number.isNaN(v.y) || Number.isNaN(v.z) || Number.isNaN(v.w)) ? null : v;
         }
     }
     /** @internal */

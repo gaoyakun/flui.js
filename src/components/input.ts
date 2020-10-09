@@ -1,4 +1,4 @@
-import { Vec2, RMLRectPrimitive, RMLPrimitiveBatchList, Text, GUI, tagname, ElementLayoutEvent, GUIMouseEvent, RMLElement, IStyleSheet, GUIFocusEvent, TextEvent, GUIRenderer } from '..';
+import { assert, RMLRectPrimitive, RMLPrimitiveBatchList, Text, GUI, tagname, Event, ElementLayoutEvent, GUIMouseEvent, RMLElement, IStyleSheet, GUIFocusEvent, TextEvent, GUIRenderer } from '..';
 
 @tagname ('input')
 export class Input extends RMLElement<Input> {
@@ -35,24 +35,25 @@ export class Input extends RMLElement<Input> {
         this._setHiddenInputSelection (this._selectionStart, this._selectionEnd);
         this._updateCursorVertices ();
         document.body.appendChild (this._hiddenInput);
-        this.on (ElementLayoutEvent.NAME, null, function (this: Input, eventName: string, data: ElementLayoutEvent) {
+        this.addEventListener (ElementLayoutEvent.NAME, function (this: Input) {
             this._updateHiddenInput ();
         });
-        this.on (GUIFocusEvent.NAME_FOCUS, null, function (this: Input, eventName: string, data: GUIFocusEvent) {
+        this.addEventListener (GUIFocusEvent.NAME_FOCUS, function (this: Input) {
             if (this.type === 'text') {
                 this._hiddenInput.focus ();
                 this._restartCursorTimer ();
             }
         });
-        this.on (GUIFocusEvent.NAME_BLUR, null, function (this: Input, eventName: string, data: GUIFocusEvent) {
+        this.addEventListener (GUIFocusEvent.NAME_BLUR, function (this: Input) {
             if (this.type === 'text') {
                 this._hiddenInput.blur ();
                 this._stopCursorTimer ();
                 this._drawCursor = false;
             }
         });
-        this.on (GUIMouseEvent.NAME_MOUSEDOWN, null, function (this: Input, eventName: string, data: GUIMouseEvent) {
-            if (data.button === MouseButton.LEFT) {
+        this.addEventListener (GUIMouseEvent.NAME_MOUSEDOWN, function (this: Input, e: Event) {
+            const data = e as GUIMouseEvent;
+            if (data.button === 1) {
                 if (this.type === 'text') {
                     this._hiddenInput.focus ();
                     const loc = this._text.measureTextLocation (data.x - this.getClientRect().x - this._text.getRect().x, data.y - this.getClientRect().y - this._text.getRect().y);
@@ -73,7 +74,8 @@ export class Input extends RMLElement<Input> {
                 }
             }
         });
-        this.on (TextEvent.NAME_CONTENT_CHANGE, this, function (this: Input, eventName: string, data: TextEvent) {
+        this.addEventListener (TextEvent.NAME_CONTENT_CHANGE, function (this: Input, e: Event) {
+            const data = e as TextEvent;
             if (this._hiddenInput.value !== this.textContent && this.type === 'text') {
                 this._hiddenInput.value = this.textContent;
                 this._selectionStart = Math.min (this._selectionStart, this.textContent.length);
@@ -82,7 +84,7 @@ export class Input extends RMLElement<Input> {
                 this._updateCursorVertices ();
             }
         });
-        this.on (TextEvent.NAME_FONT_CHANGE, this, function (this: Input, eventName: string, data: TextEvent) {
+        this.addEventListener (TextEvent.NAME_FONT_CHANGE, function (this: Input) {
             that._updateHiddenInput ();
         });
         const that = this;
@@ -171,8 +173,8 @@ export class Input extends RMLElement<Input> {
     }
     /** @internal */
     _updateHiddenInput () {
-        let el: any = this._uiscene.viewer.canvas;
-        let v = this.toAbsolute(Vector2.zero());
+        let el: any = this._uiscene.renderer.getCanvas();
+        let v = this.toAbsolute({ x:0, y:0 });
         let t = v.y + this.getRect().height;
         let l = v.x;
         if (el instanceof HTMLCanvasElement) {
@@ -234,7 +236,7 @@ export class Input extends RMLElement<Input> {
         const clipper = this._getClipper (true);
         if (clipper) {
             const x = this._calcCursorPos (this._selectionStart);
-            const v = this.toAbsolute (Vector2.zero());
+            const v = this.toAbsolute ({ x:0, y:0 });
             this._cursorBatch = new RMLPrimitiveBatchList (v.x, v.y);
             this._cursorBatch.addPrimitive (new RMLRectPrimitive(x, this.style.getPaddingTop() - 2, 1, this._getCachedFont().size + 4, 0, 0, 0, 0), clipper, null, this._getCachedFontColor());
             // this._restartCursorTimer ();

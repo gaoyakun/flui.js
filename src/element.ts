@@ -1,4 +1,4 @@
-import { RMLNode, GUI, tagname, AttributeChangeEvent, RMLNodeList, RMLStaticNodeList } from '.';
+import { RMLNode, GUI, tagname, AttributeChangeEvent, RMLNodeList, RMLStaticNodeList, Event } from '.';
 
 export interface RMLClassList {
     [n: number]: string;
@@ -49,7 +49,7 @@ export class RMLClassList {
     /** @internal */
     _notify () {
         const el = RMLClassList._elementMap.get (this);
-        el._dispatchEvent (AttributeChangeEvent.NAME, new AttributeChangeEvent(el, 'class', false), false);
+        el.dispatchEvent (new AttributeChangeEvent('class', false));
     }
     add (...args: string[]) {
         for (const arg of args) {
@@ -133,7 +133,8 @@ export class RMLElement<U extends RMLElement<any> = RMLElement<any> > extends RM
         this._tagname = null;
         this._attributes = {};
         this._classList = new RMLClassList(this);
-        this.on (AttributeChangeEvent.NAME, null, (eventName: string, data: AttributeChangeEvent) => {
+        this.addEventListener (AttributeChangeEvent.NAME, (e: Event) => {
+            const data = e as AttributeChangeEvent;
             if (data.name === 'class') {
                 this._uiscene._markStyleRefreshForElement (this);
             }
@@ -197,7 +198,7 @@ export class RMLElement<U extends RMLElement<any> = RMLElement<any> > extends RM
             } else if (k === 'style') {
                 this._uiscene._markStyleRefreshForElement (this);
             }
-            this._dispatchEvent (AttributeChangeEvent.NAME, new AttributeChangeEvent(this, k, false), false);
+            this.dispatchEvent (new AttributeChangeEvent(k, false));
         }
     }
     removeAttribute (k: string) {
@@ -206,7 +207,7 @@ export class RMLElement<U extends RMLElement<any> = RMLElement<any> > extends RM
             if (k === 'style') {
                 this._uiscene._markStyleRefreshForElement (this);
             }
-            this._dispatchEvent (AttributeChangeEvent.NAME, new AttributeChangeEvent(this, k, true), false);
+            this.dispatchEvent (new AttributeChangeEvent(k, true));
         }
     }
     hasAttribute (k: string): boolean {
@@ -306,7 +307,7 @@ export class RMLElement<U extends RMLElement<any> = RMLElement<any> > extends RM
         style = style || '';
         if (this._attributes['style'] !== style) {
             this._attributes['style'] = style;
-            this._dispatchEvent (AttributeChangeEvent.NAME, new AttributeChangeEvent(this, 'style', false), false);
+            this.dispatchEvent (new AttributeChangeEvent('style', false));
         }
     }
     /** @internal */

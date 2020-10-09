@@ -1,4 +1,4 @@
-import { GUI, tagname, Button, Slider, IStyleSheet, GUIMouseEvent, AttributeChangeEvent } from '..';
+import { GUI, tagname, Button, Slider, IStyleSheet, Event, GUIMouseEvent } from '..';
 
 @tagname ('scrollbar')
 export class ScrollBar extends Slider {
@@ -9,13 +9,13 @@ export class ScrollBar extends Slider {
         this._buttonUp = new Button (uiscene);
         this._buttonUp._setInternal ();
         this.appendChild (this._buttonUp);
-        this._buttonUp.on (GUIMouseEvent.NAME_MOUSECLICK, null, (eventName: string, data: GUIMouseEvent) => {
+        this._buttonUp.addEventListener (GUIMouseEvent.NAME_MOUSECLICK, () => {
             this.value -= this.stepValue;
         });
         this._buttonDown = new Button (uiscene);
         this._buttonDown._setInternal ();
         this.appendChild (this._buttonDown);
-        this._buttonDown.on (GUIMouseEvent.NAME_MOUSECLICK, null, (eventName: string, data: GUIMouseEvent) => {
+        this._buttonDown.addEventListener (GUIMouseEvent.NAME_MOUSECLICK, () => {
             this.value += this.stepValue;
         });
         this._updateOrientationStyle ();

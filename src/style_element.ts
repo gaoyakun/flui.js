@@ -1,4 +1,4 @@
-import { RMLElement, GUI, tagname, RMLSelector, IStyleSheet, TextContentChangeEvent, parseStyleSheet } from '.';
+import { RMLElement, GUI, tagname, RMLSelector, IStyleSheet, TextContentChangeEvent, Event } from '.';
 
 /** @internal */
 export interface IStyleDefiniation {
@@ -13,7 +13,7 @@ export class StyleElement extends RMLElement<StyleElement> {
     constructor (uiscene: GUI) {
         super (uiscene);
         this._definitions = [];
-        this.on (TextContentChangeEvent.NAME, null, (eventName:string, data: TextContentChangeEvent) => {
+        this.addEventListener (TextContentChangeEvent.NAME, (e: Event) => {
             this._update ();
         });
     }

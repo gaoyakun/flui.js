@@ -1,6 +1,4 @@
-import { RMLRectPrimitive, RMLNode, GUI, IStyleSheet, UIRect, GUIRenderer, TextEvent, AttributeChangeEvent } from '..';
-import { Vector2 } from '../../math';
-import { assert } from '../../defs';
+import { RMLRectPrimitive, RMLNode, GUI, IStyleSheet, UIRect, GUIRenderer, TextEvent, AttributeChangeEvent, assert, Vec2, Event } from '..';
 
 export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
     private _actualContent: string;
@@ -17,8 +15,9 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
         this._charMargin = 0;
         this._lineHeight = -1;
         this._inlineStyle = '';
-        this.on (AttributeChangeEvent.NAME, null, function (eventName: string, data: AttributeChangeEvent) {
-            if (data.name === 'autoWrap' || data.name === 'charMargin' || data.name === 'lineHeight') {
+        this.addEventListener (AttributeChangeEvent.NAME, function (this: Text<U>, evt: Event) {
+            const e: AttributeChangeEvent = evt as AttributeChangeEvent;
+            if (e.name === 'autoWrap' || e.name === 'charMargin' || e.name === 'lineHeight') {
                 this._invalidateLayout ();
                 this._invalidateContent ();
             }
@@ -43,7 +42,7 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
             this._actualContent = text;
             this._invalidateLayout ();
             this._invalidateContent ();
-            this.dispatch (TextEvent.NAME_CONTENT_CHANGE, this, new TextEvent(this));
+            this.dispatchEvent (new TextEvent(TextEvent.NAME_CONTENT_CHANGE));
         }
     }
     get textContent (): string {
@@ -232,8 +231,8 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
             const autoWrap = this.autoWrap;
             const charMargin = this.charMargin;
             const fontColor = this._getCachedFontColor ();
-            const uvMin = new Vector2();
-            const uvMax = new Vector2();
+            const uvMin = { x:0, y:0 };
+            const uvMax = { x:0, y:0 };
             let y = this.style.getPaddingTop();
             for (const line of lines) {
                 let start = 0;
@@ -247,8 +246,10 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
                             const glyph = this._uiscene.viewer.getGlyphInfo (line[i], font);
                             if (glyph) {
                                 const tex = this._uiscene.viewer.getGlyphTexture (glyph.atlasIndex);
-                                uvMin.set (glyph.uMin, glyph.vMin);
-                                uvMax.set (glyph.uMax, glyph.vMax);
+                                uvMin.x = glyph.uMin;
+                                uvMin.y = glyph.vMin;
+                                uvMax.x = glyph.uMax;
+                                uvMax.y = glyph.vMax;
                                 this._batchList.addPrimitive (new RMLRectPrimitive(x, y, glyph.width, glyph.height, uvMin.x, uvMin.y, uvMax.x, uvMax.y), clipper, tex, fontColor);
                                 x += glyph.width + charMargin;
                             }

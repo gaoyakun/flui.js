@@ -1,11 +1,9 @@
-import { RMLNode, RMLElement } from '.';
-import { List, ListIterator} from '../misc';
+import { RMLNode, assert, Vec2, Vec4 } from '.';
+import { List, ListIterator} from './misc';
 import * as Yoga from './typeflex/api';
 import { YGNode } from './typeflex/ygnode';
 import { YGMeasureMode } from './typeflex/enums';
 import { YGSize } from './typeflex/yoga';
-import { assert } from '../defs';
-import { Vector2, Vector4 } from '../math';
 
 export interface UIRect {
     x: number;
@@ -157,7 +155,7 @@ export class UILayout {
     updateFontColor (val: string): void {
         this.element._updateFontColor (val);
     }
-    updateBorderColor (edge: number, val: Vector4): void {
+    updateBorderColor (edge: number, val: Vec4): void {
         switch (edge) {
             case Yoga.EDGE_LEFT:
                 this.element._updateBorderLeftColor (val);
@@ -173,7 +171,7 @@ export class UILayout {
                 break;
         }
     }
-    updateBackgroundColor (val: Vector4): void {
+    updateBackgroundColor (val: Vec4): void {
         this.element._updateBackgroundColor (val);
     }
     protected syncComputedRect (px: number, py: number, markChanged: boolean) {
@@ -259,12 +257,12 @@ export class UILayout {
             this.changeStamp++;
         }
     }
-    thisToParentClient (p: Vector2): Vector2 {
+    thisToParentClient (p: Vec2): Vec2 {
         p.x += this.actualRect.x;
         p.y += this.actualRect.y;
         return p;
     }
-    thisToParent (p: Vector2): Vector2 {
+    thisToParent (p: Vec2): Vec2 {
         this.thisToParentClient (p);
         if (this._parent) {
             p.x += this._parent.clientRect.x;
@@ -284,7 +282,7 @@ export class UILayout {
             return rcClient;
         }
     }
-    toAbsolute (v: Vector2): Vector2 {
+    toAbsolute (v: Vec2): Vec2 {
         let layout: UILayout = this;
         v.x += layout.actualRect.x;
         v.y += layout.actualRect.y;
@@ -296,8 +294,8 @@ export class UILayout {
     }
     clipToParent (parent: UILayout): UIRect {
         const parentRect: UIRect = parent.clipRectForChildren ();
-        const vThis = this.toAbsolute (Vector2.zero());
-        const vParent = parent.toAbsolute (new Vector2(parentRect.x, parentRect.y));
+        const vThis = this.toAbsolute ({ x:0, y:0 });
+        const vParent = parent.toAbsolute ({ x:parentRect.x, y:parentRect.y});
         const x1This = vThis.x;
         const y1This = vThis.y;
         const x2This = x1This + this.actualRect.width;

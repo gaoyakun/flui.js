@@ -1,6 +1,4 @@
-import { MouseButton } from '../../device';
-import { RMLRectPrimitive, RMLElement, GUI, tagname, GUIRenderer, AttributeChangeEvent, IStyleSheet, GUIMouseEvent, ValueChangeEvent, ElementLayoutEvent, UIRect } from '..';
-import { Vector4 } from '../../math';
+import { RMLRectPrimitive, RMLElement, GUI, tagname, AttributeChangeEvent, IStyleSheet, Event, GUIMouseEvent, ValueChangeEvent, ElementLayoutEvent, UIRect, Vec4 } from '..';
 
 @tagname ('slider')
 export class Slider extends RMLElement<Slider> {
@@ -11,7 +9,7 @@ export class Slider extends RMLElement<Slider> {
     protected _lastRectY: number;
     protected _blockPos: number;
     protected _draggingBlock: boolean;
-    protected _blockColor: Vector4;
+    protected _blockColor: Vec4;
     constructor (uiscene: GUI) {
         super (uiscene);
         this._blockRect = null;
@@ -22,8 +20,9 @@ export class Slider extends RMLElement<Slider> {
         this._draggingBlock = false;
         this._blockPos = 0;
         this._blockColor = this.style.parseColor ('#555555');
-        this.on (GUIMouseEvent.NAME_MOUSEDOWN, null, function (this: Slider, eventName:string, data:GUIMouseEvent) {
-            if (data.button === MouseButton.LEFT 
+        this.addEventListener (GUIMouseEvent.NAME_MOUSEDOWN, function (this: Slider, evt:Event) {
+            const data: GUIMouseEvent = evt as GUIMouseEvent;
+            if (data.button === 1 // left button 
                 && !this._draggingBlock 
                 && this._blockRect 
                 && data.x >= this._blockRect.x 
@@ -38,13 +37,15 @@ export class Slider extends RMLElement<Slider> {
                 this._draggingBlock = true;
             }
         });
-        this.on (GUIMouseEvent.NAME_MOUSEUP, null, function (this: Slider, eventName:string, data: GUIMouseEvent) {
-            if (data.button === MouseButton.LEFT && this._draggingBlock) {
+        this.addEventListener (GUIMouseEvent.NAME_MOUSEUP, function (this: Slider, evt: Event) {
+            const data: GUIMouseEvent = evt as GUIMouseEvent;
+            if (data.button === 1 && this._draggingBlock) {
                 this.releaseCapture ();
                 this._draggingBlock = false;
             }
         });
-        this.on (GUIMouseEvent.NAME_MOUSEMOVE, null, function (this: Slider, eventName:string, data: GUIMouseEvent) {
+        this.addEventListener (GUIMouseEvent.NAME_MOUSEMOVE, function (this: Slider, evt: Event) {
+            const data: GUIMouseEvent = evt as GUIMouseEvent;
             if (this._draggingBlock && this._blockRect) {
                 const isVertical = this.orientation === 'vertical';
                 const clientRect = this.getClientRect ();
@@ -68,10 +69,11 @@ export class Slider extends RMLElement<Slider> {
                 }
             }
         });
-        this.on (ElementLayoutEvent.NAME, null, (eventName:string, data: ElementLayoutEvent) => {
+        this.addEventListener (ElementLayoutEvent.NAME, (evt: Event) => {
             this._blockPos = this._computeBlockPos ();
         });
-        this.on (AttributeChangeEvent.NAME, null, (eventName: string, data: AttributeChangeEvent) => {
+        this.addEventListener (AttributeChangeEvent.NAME, (evt: Event) => {
+            const data: AttributeChangeEvent = evt as AttributeChangeEvent;
             this._onAttributeChange (data.name);
         });
     }
@@ -85,7 +87,7 @@ export class Slider extends RMLElement<Slider> {
         if (this.value !== oldVal) {
             this._blockPos = this._computeBlockPos ();
             this._invalidateContent ();
-            this.dispatch (ValueChangeEvent.NAME, this, new ValueChangeEvent(this, this.value));
+            this.dispatchEvent (new ValueChangeEvent(this.value));
         }
     }
     get rangeStart (): number {
