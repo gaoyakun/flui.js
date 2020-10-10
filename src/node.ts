@@ -1,4 +1,4 @@
-import { assert, Font, Vec2, Vec4, Texture, EventTarget, eventtarget, RMLRectPrimitive, RMLPolygonPrimitive, unescapeCSSString, RMLPrimitiveBatchList, RMLElement, RMLDocument, RMLNodeList, RMLLiveNodeList, GUIRenderer, TextureAtlas, GUI, UIRect, UILayout, ElementStyle, IStyleSheet, ValueChangeEvent, ElementLayoutEvent, Event, DOMTreeEvent, ElementBuildContentEvent, TextContentChangeEvent, Text } from '.';
+import { assert, Font, Vec2, Vec4, Texture, EventTarget, eventtarget, RMLRectPrimitive, RMLPolygonPrimitive, unescapeCSSString, RMLPrimitiveBatchList, RMLElement, RMLDocument, RMLNodeList, RMLLiveNodeList, Renderer, TextureAtlas, GUI, UIRect, UILayout, ElementStyle, IStyleSheet, ValueChangeEvent, ElementLayoutEvent, Event, DOMTreeEvent, ElementBuildContentEvent, TextContentChangeEvent, Text } from '.';
 import { Visitor } from './misc';
 
 
@@ -10,8 +10,11 @@ const tmpUV2 = { x:0, y:0 };
 
 @eventtarget()
 export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
+    /** @internal */
     protected static readonly PSEUDO_NONE = 0;
+    /** @internal */
     protected static readonly PSEUDO_BEFORE = 1;
+    /** @internal */
     protected static readonly PSEUDO_AFTER = 2;
     static readonly UNKNOWN_NODE = 0;
     static readonly ELEMENT_NODE = 1;
@@ -465,7 +468,7 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
             }
         }
     }
-    draw (renderer: GUIRenderer) {
+    draw (renderer: Renderer) {
         const img = this.style.backgroundImage ? this._uiscene.imageManager.getImage (this.style.backgroundImage) : null;
         if (img !== this._backgroundImage) {
             this._backgroundImage = img;
@@ -800,7 +803,7 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
         }
     }
     /** @internal */
-    protected _draw (renderer: GUIRenderer) {
+    protected _draw (renderer: Renderer) {
         if (this._batchList.length > 0) {
             renderer.drawBatchList (this._batchList);
         }

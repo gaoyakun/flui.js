@@ -1,4 +1,4 @@
-import { Vec4 } from '.';
+import { Vec4, RMLPrimitiveBatchList } from '.';
 
 export interface Renderer {
     getCanvas (): HTMLCanvasElement;
@@ -12,4 +12,8 @@ export interface Renderer {
     disposeTexture (texture: unknown): void;
     setCursorStyle (style: string): void;
     getCursorStyle (): string;
+    drawBatchList (batches: RMLPrimitiveBatchList): void;
+    drawQuads (data: Float32Array, texture: unknown): void;
+    beginRender (): void;
+    endRender (): void;
 }

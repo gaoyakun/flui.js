@@ -13,16 +13,27 @@ export interface IAtlasInfo {
 }
 
 export class AtlasManager<U extends AtlasManager<any> = AtlasManager<any> > {
+    /** @internal */
     protected static readonly ATLAS_WIDTH = 1024;
+    /** @internal */
     protected static readonly ATLAS_HEIGHT = 1024;
+    /** @internal */
     protected _renderer: Renderer;
+    /** @internal */
     protected _packer: MaxRectsPacker;
+    /** @internal */
     protected _cachePadding: number;
+    /** @internal */
     protected _cacheWidth: number;
+    /** @internal */
     protected _cacheHeight: number;
+    /** @internal */
     protected _linearSpace: boolean;
+    /** @internal */
     protected _textureFormat: 'lum'|'rgba';
+    /** @internal */
     protected _atlasList: Texture[];
+    /** @internal */
     protected _atlasInfoMap: { [hash:string]: IAtlasInfo };
     constructor (renderer: Renderer, cacheWidth?: number, cacheHeight?: number, cachePadding?: number, textureFormat?: 'lum'|'rgba', linearSpace?: boolean) {
         this._renderer = renderer;

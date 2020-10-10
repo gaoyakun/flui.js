@@ -1,5 +1,7 @@
 import * as Yoga from './typeflex/api';
-import { Renderer, ImageManager, GUIHitTestVisitor, UILayout, UIRect, RMLNode, RMLElement, Input, RMLDocument, StyleElement, IStyleSheet, parseStyleSheet, Event, DOMTreeEvent, GUIMouseEvent, GUIKeyEvent, GUIFocusEvent, RMLSelector, Rule, Vec2, assert, EventTarget, eventtarget } from '.';
+import { Renderer, Texture, Font, GlyphManager, IGlyphInfo, ImageManager, GUIHitTestVisitor, UILayout, UIRect, RMLNode, RMLElement, Input, RMLDocument, StyleElement, IStyleSheet, parseStyleSheet, Event, DOMTreeEvent, GUIMouseEvent, GUIKeyEvent, GUIFocusEvent, RMLSelector, Rule, Vec2, assert, EventTarget, eventtarget } from '.';
+import { Visitor, visitor } from './misc';
+import { FileLoader, LoadManager } from './asset';
 
 interface IElementConstructor {
     new (gui: GUI, ...args: any[]): any;
@@ -7,6 +9,20 @@ interface IElementConstructor {
 
 interface ITagNameGetter {
     (element: RMLElement): string;
+}
+
+class GUIDrawVisitor extends Visitor {
+    private _renderer: Renderer;
+    constructor (renderer: Renderer) {
+        super ();
+        this._renderer = renderer;
+    }
+    @visitor(RMLNode)
+    visitElement (w: RMLNode) {
+        if (w._isVisible()) {
+            w.draw (this._renderer);
+        }
+    }
 }
 
 export class ElementRegistry {
@@ -61,6 +77,8 @@ export class GUI {
     /** @internal */
     protected _imageManager: ImageManager;
     /** @internal */
+    protected _glyphManager: GlyphManager;
+    /** @internal */
     protected _document: RMLDocument;
     /** @internal */
     protected _focusElement: RMLNode;
@@ -90,9 +108,14 @@ export class GUI {
     protected _domTag: number;
     /** @internal */
     protected _baseURI: string;
+    /** @internal */
+    protected _drawVisitor: GUIDrawVisitor;
+
     constructor (renderer: Renderer, bounds?: UIRect) {
         this._renderer = renderer;
+        this._drawVisitor = new GUIDrawVisitor (renderer);
         this._imageManager = new ImageManager (this._renderer);
+        this._glyphManager = new GlyphManager (this._renderer);
         this._document = null;
         this._focusElement = null;
         this._captureElement = null;
@@ -126,7 +149,7 @@ export class GUI {
                 setTimeout (() => {
                     const inputs = this.document.querySelectorAll ('input');
                     for (const input of inputs.values()) {
-                        (input as Input)._updateHiddenInput ();
+                        (input as unknown as Input)._updateHiddenInput ();
                     }
                 }, 0);
             }
@@ -437,6 +460,13 @@ export class GUI {
             return [];
         }
     }
+    render () {
+        this.checkAndRefreshStyle ();
+        this.updateLayout ();
+        this._renderer.beginRender ();
+        this.document.traverse (this._drawVisitor);
+        this._renderer.endRender ();
+    }
     serializeToXML (): string {
         return this._serializeToXML ();
     }
@@ -475,6 +505,22 @@ export class GUI {
         const el = elementRegistry.createElement (this, tagname) as T;
         el._init ();
         return el;
+    }
+    /** @internal */
+    _getGlyphTexture (index: number): Texture {
+        return this._glyphManager.getGlyphTexture(index);
+    }
+    /** @internal */
+    _getGlyphInfo (char: string, font: Font): IGlyphInfo {
+        return this._glyphManager.getGlyphInfo (char, font);
+    }
+    /** @internal */
+    _measureStringWidth (str: string, charMargin: number, font: Font) {
+        return this._glyphManager.measureStringWidth (str, charMargin, font);
+    }
+    /** @internal */
+    _clipStringToWidth (str: string, width: number, charMargin: number, start: number, font: Font) {
+        return this._glyphManager.clipStringToWidth (str, width, charMargin, start, font);
     }
     /** @internal */
     _querySelectorAll (root: RMLNode, selectors: string, excludeRoot: boolean, allowInternal: boolean): RMLElement[] {

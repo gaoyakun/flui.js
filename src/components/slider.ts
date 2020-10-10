@@ -2,13 +2,21 @@ import { RMLRectPrimitive, RMLElement, GUI, tagname, AttributeChangeEvent, IStyl
 
 @tagname ('slider')
 export class Slider extends RMLElement<Slider> {
+    /** @internal */
     protected _blockRect: UIRect;
+    /** @internal */
     protected _lastX: number;
+    /** @internal */
     protected _lastY: number;
+    /** @internal */
     protected _lastRectX: number;
+    /** @internal */
     protected _lastRectY: number;
+    /** @internal */
     protected _blockPos: number;
+    /** @internal */
     protected _draggingBlock: boolean;
+    /** @internal */
     protected _blockColor: Vec4;
     constructor (uiscene: GUI) {
         super (uiscene);
@@ -141,12 +149,14 @@ export class Slider extends RMLElement<Slider> {
         this._setStringAttribute ('blockImage', val);
         this._invalidateContent ();
     }
+    /** @internal */
     protected _onAttributeChange (name: string) {
         if (name === 'rangeStart' || name === 'rangeEnd') {
             this._blockPos = this._computeBlockPos ();
             this._invalidateContent ();
         }
     }
+    /** @internal */
     protected _buildBlockVertexData () {
         const clipper = this._getClipper (false);
         if (clipper) {
@@ -168,6 +178,7 @@ export class Slider extends RMLElement<Slider> {
             blockColor);
         }
     }
+    /** @internal */
     protected _computeBlockPos () {
         const isVertical = this.orientation === 'vertical';
         const rangeMin = this.rangeStart < this.rangeEnd ? this.rangeStart : this.rangeEnd;
@@ -180,6 +191,7 @@ export class Slider extends RMLElement<Slider> {
         }
         return Math.floor(freeSpace * (value - this.rangeStart) / (this.rangeEnd - this.rangeStart));
     }
+    /** @internal */
     protected _buildVertexData () {
         super._buildVertexData ();
         if (this.rangeStart === this.rangeEnd) {

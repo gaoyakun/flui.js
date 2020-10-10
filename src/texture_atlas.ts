@@ -1,10 +1,15 @@
 import { Vec2, Texture } from '.';
 
 export class TextureAtlas {
+    /** @internal */
     protected _texture: Texture;
+    /** @internal */
     protected _uvMin: Vec2;
+    /** @internal */
     protected _uvMax: Vec2;
+    /** @internal */
     protected _topLeftPatch9: Vec2;
+    /** @internal */
     protected _bottomRightPatch9: Vec2;
     constructor (texture?: Texture, uvMin?: Vec2, uvMax?: Vec2, topLeftPatch9?: Vec2, bottomRightPatch9?: Vec2) {
         this._texture = texture || null;

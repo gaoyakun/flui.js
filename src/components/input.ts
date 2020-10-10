@@ -1,4 +1,4 @@
-import { assert, RMLRectPrimitive, RMLPrimitiveBatchList, Text, GUI, tagname, Event, ElementLayoutEvent, GUIMouseEvent, RMLElement, IStyleSheet, GUIFocusEvent, TextEvent, GUIRenderer } from '..';
+import { assert, RMLRectPrimitive, RMLPrimitiveBatchList, Text, GUI, tagname, Event, ElementLayoutEvent, GUIMouseEvent, RMLElement, IStyleSheet, GUIFocusEvent, TextEvent, Renderer } from '..';
 
 @tagname ('input')
 export class Input extends RMLElement<Input> {
@@ -116,7 +116,7 @@ export class Input extends RMLElement<Input> {
             this._text.style.backgroundColor = this._hiddenInput.value;
         }
     }
-    protected _draw (renderer: GUIRenderer) {
+    protected _draw (renderer: Renderer) {
         super._draw (renderer);
         if (this._drawCursor && this._cursorBatch) {
             renderer.drawBatchList (this._cursorBatch);
@@ -225,7 +225,7 @@ export class Input extends RMLElement<Input> {
     private _calcCursorPos (pos: number): number {
         let x = this.style.getPaddingLeft();
         for (let i = 0; i < pos; i++) {
-            const glyph = this._uiscene.viewer.getGlyphInfo (this._text.textContent[i], this._getCachedFont());
+            const glyph = this._uiscene._getGlyphInfo (this._text.textContent[i], this._getCachedFont());
             if (glyph) {
                 x += glyph.width + this._text.charMargin;
             }

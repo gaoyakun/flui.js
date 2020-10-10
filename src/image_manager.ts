@@ -1,10 +1,15 @@
 import { TextureAtlas, AtlasManager, IAtlasInfo, Renderer } from '.';
 
 export class ImageManager {
+    /** @internal */
     protected _renderer: Renderer;
+    /** @internal */
     protected _atlasManager: AtlasManager;
+    /** @internal */
     protected _cachedImages: { [name:string]: TextureAtlas };
+    /** @internal */
     protected _urlImages: { [url:string]: TextureAtlas };
+    /** @internal */
     private static _tempElement: HTMLAnchorElement = null;
     constructor (renderer: Renderer) {
         this._renderer = renderer;
@@ -23,6 +28,7 @@ export class ImageManager {
         this._cachedImages = {};
         this._urlImages = {};
     }
+    /** @internal */
     private _createBuiltinImages () {
         let cvs = document.createElement('canvas');
         cvs.width = 256;

@@ -25,7 +25,7 @@ module.exports = {
   plugins: [
     new DtsBundleWebpack({
       name: 'flui',
-      main: Path.resolve(__dirname, '../src/flui.d.ts'),
+      main: Path.resolve(__dirname, '../src/index.d.ts'),
       baseDir: Path.resolve(__dirname, '../src'),
       out: Path.resolve(__dirname, "../dist/index.d.ts"),
       exclude: /.*\/internal\/.*/,

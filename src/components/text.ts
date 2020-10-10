@@ -1,4 +1,4 @@
-import { RMLRectPrimitive, RMLNode, GUI, IStyleSheet, UIRect, GUIRenderer, TextEvent, AttributeChangeEvent, assert, Vec2, Event } from '..';
+import { RMLRectPrimitive, RMLNode, GUI, IStyleSheet, UIRect, TextEvent, AttributeChangeEvent, assert, Vec2, Event } from '..';
 
 export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
     private _actualContent: string;
@@ -98,6 +98,7 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
         style.display = this._findFirstTextNode() === this ? 'flex' : 'none';
         return style;
     }
+    /** @internal */
     measureTextLocation (px: number, py: number): { line: number, pos: number } {
         const lines = this._splitContent ();
         const font = this._getCachedFont();
@@ -113,7 +114,7 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
             c += lines[i].length;
         }
         for (let i = 0; i < lines[l].length; i++) {
-            const glyph = this._uiscene.viewer.getGlyphInfo (lines[l][i], font);
+            const glyph = this._uiscene._getGlyphInfo (lines[l][i], font);
             if (glyph) {
                 if (px <= t + (glyph.width >> 1)) {
                     break;
@@ -124,6 +125,7 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
         }
         return { line: l, pos: c };
     }
+    /** @internal */
     _measureContentSize (rc: UIRect): UIRect {
         const lines = this._splitContent ();
         const font = this._getCachedFont();
@@ -132,7 +134,7 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
         const autoWrap = this.autoWrap;
         if (rc.width === 0 && rc.height === 0) {
             for (const line of lines) {
-                rc.width = Math.max (rc.width, this._uiscene.viewer.measureStringWidth(line, charMargin, font));
+                rc.width = Math.max (rc.width, this._uiscene._measureStringWidth(line, charMargin, font));
                 rc.height += lineHeight;
             }
         } else if (rc.height === 0) {
@@ -142,14 +144,14 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
                     rc.height += lineHeight;
                 } else {
                     while (start < line.length) {
-                        start += autoWrap ? Math.max(1, this._uiscene.viewer.clipStringToWidth (line, rc.width, charMargin, start, font)) : line.length;
+                        start += autoWrap ? Math.max(1, this._uiscene._clipStringToWidth (line, rc.width, charMargin, start, font)) : line.length;
                         rc.height += lineHeight;
                     }
                 }
             }
         } else if (rc.width === 0) {
             for (const line of lines) {
-                rc.width = Math.max (rc.width, this._uiscene.viewer.measureStringWidth(line, charMargin, font));
+                rc.width = Math.max (rc.width, this._uiscene._measureStringWidth(line, charMargin, font));
             }
         }
         return rc;
@@ -221,6 +223,7 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
         }
         return this;
     }
+    /** @internal */
     protected _buildVertexData () {
         super._buildVertexData ();
         const clipper = this._getClipper (true);
@@ -241,11 +244,11 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
                 } else {
                     while (start < line.length) {
                         let x = this.style.getPaddingLeft();
-                        const n = autoWrap ? Math.max(1, this._uiscene.viewer.clipStringToWidth (line, this._layout.clientRect.width, charMargin, start, font)) : line.length;
+                        const n = autoWrap ? Math.max(1, this._uiscene._clipStringToWidth (line, this._layout.clientRect.width, charMargin, start, font)) : line.length;
                         for (let i = start; i < start + n; i++) {
-                            const glyph = this._uiscene.viewer.getGlyphInfo (line[i], font);
+                            const glyph = this._uiscene._getGlyphInfo (line[i], font);
                             if (glyph) {
-                                const tex = this._uiscene.viewer.getGlyphTexture (glyph.atlasIndex);
+                                const tex = this._uiscene._getGlyphTexture (glyph.atlasIndex);
                                 uvMin.x = glyph.uMin;
                                 uvMin.y = glyph.vMin;
                                 uvMax.x = glyph.uMax;
@@ -261,11 +264,13 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
             }
         }
     }
+    /** @internal */
     private _splitContent (): string[] {
         const content = this.actualContent || '';
         const tab2space = Array.from({length:4}).map(()=>' ').join('');
         return content.replace (/\t/g, tab2space).split('\n');
     }
+    /** @internal */
     private _findFirstTextNode (): Text {
         let el: RMLNode = this;
         while (el.previousSibling?._isText() && el.previousSibling?._getPseudo() === RMLNode.PSEUDO_NONE) {
@@ -273,6 +278,7 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
         }
         return el as Text;
     }
+    /** @internal */
     private _styleChange () {
         assert (!this.previousSibling || !this.previousSibling._isText(), 'Failed to execute _updateStyle: text node must be the first', true);
         this.style.display = 'flex';

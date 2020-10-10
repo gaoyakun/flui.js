@@ -1,4 +1,4 @@
-import { Viewer, AbstractTexture, TextureFormat, Font, FontCanvas, AtlasManager } from '.';
+import { Renderer, Texture, Font, FontCanvas, AtlasManager } from '.';
 
 export interface IGlyphInfo {
     atlasIndex: number;
@@ -13,10 +13,10 @@ export interface IGlyphInfo {
 const updateByCanvas: boolean = false;
 
 export class GlyphManager extends AtlasManager<GlyphManager> {
-    constructor (viewer: Viewer, cacheWidth?: number, cacheHeight?: number, cachePadding?: number) {
-        super (viewer, Math.max (cacheWidth, 2), cacheHeight, cachePadding, TextureFormat.RGBA8, true);
+    constructor (renderer: Renderer, cacheWidth?: number, cacheHeight?: number, cachePadding?: number) {
+        super (renderer, Math.max (cacheWidth, 2), cacheHeight, cachePadding, 'rgba', true);
     }
-    getGlyphTexture (index: number): AbstractTexture {
+    getGlyphTexture (index: number): Texture {
         return this.getAtlasTexture (index);
     }
     getGlyphInfo (char: string, font: Font): IGlyphInfo {
