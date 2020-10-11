@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "14398327094832c26cd3";
+/******/ 	var hotCurrentHash = "9887e3718b41693db5dc";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -2873,7 +2873,7 @@ exports.AtlasManager = void 0;
 var maxrects_packer_1 = __webpack_require__(/*! ./maxrects-packer */ "./maxrects-packer/index.ts");
 
 var AtlasManager = function () {
-  function AtlasManager(renderer, cacheWidth, cacheHeight, cachePadding, textureFormat, linearSpace) {
+  function AtlasManager(renderer, cacheWidth, cacheHeight, cachePadding, linearSpace) {
     (0, _classCallCheck2.default)(this, AtlasManager);
     this._renderer = renderer;
     this._cacheWidth = typeof cacheWidth === 'number' ? cacheWidth || AtlasManager.ATLAS_WIDTH : AtlasManager.ATLAS_WIDTH;
@@ -2889,15 +2889,9 @@ var AtlasManager = function () {
     });
     this._atlasList = [];
     this._atlasInfoMap = {};
-    this._textureFormat = textureFormat || 'rgba';
   }
 
   (0, _createClass2.default)(AtlasManager, [{
-    key: "getTextureFormat",
-    value: function getTextureFormat() {
-      return this._textureFormat;
-    }
-  }, {
     key: "getAtlasTexture",
     value: function getAtlasTexture(index) {
       return this._atlasList[index];
@@ -2978,15 +2972,10 @@ var AtlasManager = function () {
   }, {
     key: "_updateAtlasTextureCanvas",
     value: function _updateAtlasTextureCanvas(atlasIndex, bitmap, x, y, w, h, xOffset, yOffset) {
-      if (this._textureFormat !== 'rgba') {
-        var bmp = bitmap.getImageData(xOffset, yOffset, w, h);
-        return this._updateAtlasTexture(atlasIndex, bmp, x, y, w, h);
-      }
-
       var textureAtlas = null;
 
       if (atlasIndex === this._atlasList.length) {
-        textureAtlas = this._renderer.createTexture(this._textureFormat, this._cacheWidth + this._cachePadding, this._cacheHeight + this._cachePadding, {
+        textureAtlas = this._renderer.createTexture(this._cacheWidth + this._cachePadding, this._cacheHeight + this._cachePadding, {
           x: 0,
           y: 0,
           z: 0,
@@ -3006,7 +2995,7 @@ var AtlasManager = function () {
       var textureAtlas = null;
 
       if (atlasIndex === this._atlasList.length) {
-        textureAtlas = this._renderer.createTexture(this._textureFormat, this._cacheWidth + this._cachePadding, this._cacheHeight + this._cachePadding, {
+        textureAtlas = this._renderer.createTexture(this._cacheWidth + this._cachePadding, this._cacheHeight + this._cachePadding, {
           x: 0,
           y: 0,
           z: 0,
@@ -3329,7 +3318,7 @@ var Input = function (_1$RMLElement) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(Input.prototype), "_draw", this).call(this, renderer);
 
       if (this._drawCursor && this._cursorBatch) {
-        renderer.drawBatchList(this._cursorBatch);
+        this._uiscene._drawBatchList(this._cursorBatch);
       }
     }
   }, {
@@ -6246,7 +6235,7 @@ var GlyphManager = function (_$AtlasManager) {
 
   function GlyphManager(renderer, cacheWidth, cacheHeight, cachePadding) {
     (0, _classCallCheck2.default)(this, GlyphManager);
-    return _super.call(this, renderer, Math.max(cacheWidth, 2), cacheHeight, cachePadding, 'rgba', true);
+    return _super.call(this, renderer, Math.max(cacheWidth, 2), cacheHeight, cachePadding, true);
   }
 
   (0, _createClass2.default)(GlyphManager, [{
@@ -7313,6 +7302,19 @@ var GUI = function () {
       return el;
     }
   }, {
+    key: "_drawBatchList",
+    value: function _drawBatchList(batches) {
+      for (var i = 0; i < batches.length; i++) {
+        var batch = batches.getBatch(i);
+        var vertices = batches.getVertices(i);
+        var color = batch.color;
+
+        if (color.w > 0 && vertices) {
+          this._renderer.drawQuads(vertices, batch.texture || null);
+        }
+      }
+    }
+  }, {
     key: "_getGlyphTexture",
     value: function _getGlyphTexture(index) {
       return this._glyphManager.getGlyphTexture(index);
@@ -7905,7 +7907,7 @@ var ImageManager = function () {
     this._renderer = renderer;
     this._cachedImages = {};
     this._urlImages = {};
-    this._atlasManager = new _1.AtlasManager(this._renderer, 1024, 1024, 1, 'rgba', false);
+    this._atlasManager = new _1.AtlasManager(this._renderer, 1024, 1024, 1, false);
 
     this._createBuiltinImages();
   }
@@ -8044,7 +8046,6 @@ var ImageManager = function () {
 }();
 
 exports.ImageManager = ImageManager;
-ImageManager._tempElement = null;
 var ORIENTATION_HORIZONAL = 0;
 var ORIENTATION_VERTICAL = 1;
 
@@ -11298,7 +11299,7 @@ var RMLNode = RMLNode_1 = function () {
     key: "_draw",
     value: function _draw(renderer) {
       if (this._batchList.length > 0) {
-        renderer.drawBatchList(this._batchList);
+        this._uiscene._drawBatchList(this._batchList);
       }
     }
   }, {

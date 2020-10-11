@@ -1,5 +1,5 @@
 import * as Yoga from './typeflex/api';
-import { Renderer, Texture, Font, GlyphManager, IGlyphInfo, ImageManager, GUIHitTestVisitor, UILayout, UIRect, RMLNode, RMLElement, Input, RMLDocument, StyleElement, IStyleSheet, parseStyleSheet, Event, DOMTreeEvent, GUIMouseEvent, GUIKeyEvent, GUIFocusEvent, RMLSelector, Rule, Vec2, assert, EventTarget, eventtarget } from '.';
+import { Renderer, Texture, Font, GlyphManager, IGlyphInfo, ImageManager, GUIHitTestVisitor, UILayout, UIRect, RMLNode, RMLElement, Input, RMLDocument, StyleElement, IStyleSheet, parseStyleSheet, Event, DOMTreeEvent, GUIMouseEvent, GUIKeyEvent, GUIFocusEvent, RMLSelector, Rule, Vec2, assert, EventTarget, eventtarget, RMLPrimitiveBatchList } from '.';
 import { Visitor, visitor } from './misc';
 import { FileLoader, LoadManager } from './asset';
 
@@ -505,6 +505,17 @@ export class GUI {
         const el = elementRegistry.createElement (this, tagname) as T;
         el._init ();
         return el;
+    }
+    /** @internal */
+    _drawBatchList (batches: RMLPrimitiveBatchList) {
+        for (let i = 0; i < batches.length; i++) {
+            const batch = batches.getBatch (i);
+            const vertices = batches.getVertices (i);
+            const color = batch.color;
+            if (color.w > 0 && vertices) {
+                this._renderer.drawQuads (vertices, batch.texture || null);
+            }
+        }
     }
     /** @internal */
     _getGlyphTexture (index: number): Texture {

@@ -14,7 +14,7 @@ const updateByCanvas: boolean = false;
 
 export class GlyphManager extends AtlasManager<GlyphManager> {
     constructor (renderer: Renderer, cacheWidth?: number, cacheHeight?: number, cachePadding?: number) {
-        super (renderer, Math.max (cacheWidth, 2), cacheHeight, cachePadding, 'rgba', true);
+        super (renderer, Math.max (cacheWidth, 2), cacheHeight, cachePadding, true);
     }
     getGlyphTexture (index: number): Texture {
         return this.getAtlasTexture (index);

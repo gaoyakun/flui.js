@@ -119,7 +119,7 @@ export class Input extends RMLElement<Input> {
     protected _draw (renderer: Renderer) {
         super._draw (renderer);
         if (this._drawCursor && this._cursorBatch) {
-            renderer.drawBatchList (this._cursorBatch);
+            this._uiscene._drawBatchList (this._cursorBatch);
         }
     }
     get type(): string {

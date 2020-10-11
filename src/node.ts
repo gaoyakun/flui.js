@@ -805,7 +805,7 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
     /** @internal */
     protected _draw (renderer: Renderer) {
         if (this._batchList.length > 0) {
-            renderer.drawBatchList (this._batchList);
+            this._uiscene._drawBatchList (this._batchList);
         }
     }
     /** @internal */

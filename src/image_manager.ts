@@ -9,13 +9,11 @@ export class ImageManager {
     protected _cachedImages: { [name:string]: TextureAtlas };
     /** @internal */
     protected _urlImages: { [url:string]: TextureAtlas };
-    /** @internal */
-    private static _tempElement: HTMLAnchorElement = null;
     constructor (renderer: Renderer) {
         this._renderer = renderer;
         this._cachedImages = {};
         this._urlImages = {};
-        this._atlasManager = new AtlasManager (this._renderer, 1024, 1024, 1, 'rgba', false);
+        this._atlasManager = new AtlasManager (this._renderer, 1024, 1024, 1, false);
         this._createBuiltinImages ();
     }
     get renderer () {

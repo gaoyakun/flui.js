@@ -30,12 +30,10 @@ export class AtlasManager<U extends AtlasManager<any> = AtlasManager<any> > {
     /** @internal */
     protected _linearSpace: boolean;
     /** @internal */
-    protected _textureFormat: 'lum'|'rgba';
-    /** @internal */
     protected _atlasList: Texture[];
     /** @internal */
     protected _atlasInfoMap: { [hash:string]: IAtlasInfo };
-    constructor (renderer: Renderer, cacheWidth?: number, cacheHeight?: number, cachePadding?: number, textureFormat?: 'lum'|'rgba', linearSpace?: boolean) {
+    constructor (renderer: Renderer, cacheWidth?: number, cacheHeight?: number, cachePadding?: number, linearSpace?: boolean) {
         this._renderer = renderer;
         this._cacheWidth = typeof cacheWidth === 'number' ? (cacheWidth||AtlasManager.ATLAS_WIDTH) : AtlasManager.ATLAS_WIDTH;
         this._cacheHeight = typeof cacheHeight === 'number' ? (cacheHeight||AtlasManager.ATLAS_HEIGHT) : AtlasManager.ATLAS_HEIGHT;
@@ -44,10 +42,6 @@ export class AtlasManager<U extends AtlasManager<any> = AtlasManager<any> > {
         this._packer = new MaxRectsPacker (this._cacheWidth, this._cacheHeight, this._cachePadding, { smart: true, pot: false, square: false, allowRotation: false, tag: false });
         this._atlasList = [];
         this._atlasInfoMap = {};
-        this._textureFormat = textureFormat || 'rgba';
-    }
-    getTextureFormat (): 'lum'|'rgba' {
-        return this._textureFormat;
     }
     getAtlasTexture (index: number): Texture {
         return this._atlasList[index];
@@ -101,13 +95,9 @@ export class AtlasManager<U extends AtlasManager<any> = AtlasManager<any> > {
         return null;
     }
     private _updateAtlasTextureCanvas (atlasIndex: number, bitmap: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, xOffset: number, yOffset: number) {
-        if (this._textureFormat !== 'rgba') {
-            const bmp = bitmap.getImageData (xOffset, yOffset, w, h);
-            return this._updateAtlasTexture (atlasIndex, bmp, x, y, w, h);
-        }
         let textureAtlas: Texture = null;
         if (atlasIndex === this._atlasList.length) {
-            textureAtlas = this._renderer.createTexture (this._textureFormat, this._cacheWidth + this._cachePadding, this._cacheHeight + this._cachePadding, {x:0,y:0,z:0,w:0}, this._linearSpace);
+            textureAtlas = this._renderer.createTexture (this._cacheWidth + this._cachePadding, this._cacheHeight + this._cachePadding, {x:0,y:0,z:0,w:0}, this._linearSpace);
             this._atlasList.push (textureAtlas);
         } else {
             textureAtlas = this._atlasList[atlasIndex];
@@ -117,7 +107,7 @@ export class AtlasManager<U extends AtlasManager<any> = AtlasManager<any> > {
     private _updateAtlasTexture (atlasIndex: number, bitmap: ImageData, x: number, y: number, w: number, h: number) {
         let textureAtlas: Texture = null;
         if (atlasIndex === this._atlasList.length) {
-            textureAtlas = this._renderer.createTexture (this._textureFormat, this._cacheWidth + this._cachePadding, this._cacheHeight + this._cachePadding, {x:0,y:0,z:0,w:0}, this._linearSpace);
+            textureAtlas = this._renderer.createTexture (this._cacheWidth + this._cachePadding, this._cacheHeight + this._cachePadding, {x:0,y:0,z:0,w:0}, this._linearSpace);
             this._atlasList.push (textureAtlas);
         } else {
             textureAtlas = this._atlasList[atlasIndex];

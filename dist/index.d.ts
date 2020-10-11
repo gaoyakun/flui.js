@@ -96,12 +96,12 @@ declare module 'flui/font' {
 }
 
 declare module 'flui/renderer' {
-    import { Vec4, RMLPrimitiveBatchList } from 'flui/';
+    import { Vec4 } from 'flui/';
     export interface Renderer {
         getCanvas(): HTMLCanvasElement;
         getDrawingBufferWidth(): number;
         getDrawingBufferHeight(): number;
-        createTexture(format: 'lum' | 'rgba', width: number, height: number, color: Vec4, linear: boolean): unknown;
+        createTexture(width: number, height: number, color: Vec4, linear: boolean): unknown;
         updateTextureWithImage(texture: unknown, bitmap: ImageData, x: number, y: number): void;
         updateTextureWithCanvas(texture: unknown, cvs: HTMLCanvasElement, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void;
         getTextureWidth(texture: unknown): number;
@@ -109,7 +109,6 @@ declare module 'flui/renderer' {
         disposeTexture(texture: unknown): void;
         setCursorStyle(style: string): void;
         getCursorStyle(): string;
-        drawBatchList(batches: RMLPrimitiveBatchList): void;
         drawQuads(data: Float32Array, texture: unknown): void;
         beginRender(): void;
         endRender(): void;
@@ -129,8 +128,7 @@ declare module 'flui/atlas_manager' {
         vMax: number;
     }
     export class AtlasManager<U extends AtlasManager<any> = AtlasManager<any>> {
-        constructor(renderer: Renderer, cacheWidth?: number, cacheHeight?: number, cachePadding?: number, textureFormat?: 'lum' | 'rgba', linearSpace?: boolean);
-        getTextureFormat(): 'lum' | 'rgba';
+        constructor(renderer: Renderer, cacheWidth?: number, cacheHeight?: number, cachePadding?: number, linearSpace?: boolean);
         getAtlasTexture(index: number): Texture;
         getAtlasInfo(key: string): IAtlasInfo;
         dispose(): void;
