@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "183b58323460cc5adc19";
+/******/ 	var hotCurrentHash = "3c5cd3c7221c12e97211";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -6385,12 +6385,6 @@ var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "../node_modules/@babel/runtime/helpers/createClass.js"));
 
-var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "../node_modules/@babel/runtime/helpers/inherits.js"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "../node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
-
 var _typeof2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/typeof */ "../node_modules/@babel/runtime/helpers/typeof.js"));
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e5) { throw _e5; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e6) { didErr = true; err = _e6; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -6398,10 +6392,6 @@ function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symb
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
-
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 var __decorate = void 0 && (void 0).__decorate || function (decorators, target, key, desc) {
   var c = arguments.length,
@@ -6458,36 +6448,24 @@ var Yoga = __webpack_require__(/*! ./typeflex/api */ "./typeflex/api.ts");
 
 var _1 = __webpack_require__(/*! . */ "./index.ts");
 
-var misc_1 = __webpack_require__(/*! ./misc */ "./misc/index.ts");
-
 var asset_1 = __webpack_require__(/*! ./asset */ "./asset/index.ts");
 
-var GUIDrawVisitor = function (_misc_1$Visitor) {
-  (0, _inherits2.default)(GUIDrawVisitor, _misc_1$Visitor);
-
-  var _super = _createSuper(GUIDrawVisitor);
-
+var GUIDrawVisitor = function () {
   function GUIDrawVisitor(renderer) {
-    var _this;
-
     (0, _classCallCheck2.default)(this, GUIDrawVisitor);
-    _this = _super.call(this);
-    _this._renderer = renderer;
-    return _this;
+    this._renderer = renderer;
   }
 
   (0, _createClass2.default)(GUIDrawVisitor, [{
-    key: "visitElement",
-    value: function visitElement(w) {
+    key: "visitNode",
+    value: function visitNode(w) {
       if (w._isVisible()) {
         w.draw(this._renderer);
       }
     }
   }]);
   return GUIDrawVisitor;
-}(misc_1.Visitor);
-
-__decorate([misc_1.visitor(_1.RMLNode), __metadata("design:type", Function), __metadata("design:paramtypes", [_1.RMLNode]), __metadata("design:returntype", void 0)], GUIDrawVisitor.prototype, "visitElement", null);
+}();
 
 var ElementRegistry = function () {
   function ElementRegistry() {
@@ -6537,7 +6515,7 @@ var deviceKeyEvents = [_1.GUIKeyEvent.NAME_KEYDOWN, _1.GUIKeyEvent.NAME_KEYUP, _
 
 var GUI = function () {
   function GUI(renderer, bounds) {
-    var _this3 = this;
+    var _this2 = this;
 
     (0, _classCallCheck2.default)(this, GUI);
     this._renderer = renderer;
@@ -6581,7 +6559,7 @@ var GUI = function () {
     this._topLayout.node.setHeight(this._bounds ? this._bounds.height : this._renderer.getDrawingBufferHeight());
 
     this.addEventListener('deviceresize', function () {
-      var _this2 = this;
+      var _this = this;
 
       if (!this._bounds) {
         this._topLayout.node.setWidth(this._renderer.getDrawingBufferWidth());
@@ -6590,7 +6568,7 @@ var GUI = function () {
 
         this.invalidateLayout();
         setTimeout(function () {
-          var inputs = _this2.document.querySelectorAll('input');
+          var inputs = _this.document.querySelectorAll('input');
 
           var _iterator = _createForOfIteratorHelper(inputs.values()),
               _step;
@@ -6617,8 +6595,8 @@ var GUI = function () {
       var _loop = function _loop() {
         var evt = _step2.value;
 
-        _this3.addEventListener(evt, function (e) {
-          var _this4 = this;
+        _this2.addEventListener(evt, function (e) {
+          var _this3 = this;
 
           var mouseEvent = e;
 
@@ -6645,7 +6623,7 @@ var GUI = function () {
             }
 
             var _loop2 = function _loop2(i) {
-              var info = _this4._hoverElements[i];
+              var info = _this3._hoverElements[i];
 
               if (!hits.find(function (hit) {
                 return hit.element === info.element;
@@ -6670,7 +6648,7 @@ var GUI = function () {
             var _loop3 = function _loop3(_i) {
               var info = hits[_i];
 
-              if (!_this4._hoverElements.find(function (hit) {
+              if (!_this3._hoverElements.find(function (hit) {
                 return hit.element === info.element;
               })) {
                 info.element._onMouseIn(info.x, info.y);
@@ -6768,7 +6746,7 @@ var GUI = function () {
       var _loop4 = function _loop4() {
         var evt = _step3.value;
 
-        _this3.addEventListener(evt, function (e) {
+        _this2.addEventListener(evt, function (e) {
           var keyEvent = e;
 
           if (this._focusElement && this._focusElement.enabled) {
@@ -6910,7 +6888,7 @@ var GUI = function () {
   }, {
     key: "checkAndRefreshStyle",
     value: function checkAndRefreshStyle() {
-      var _this5 = this;
+      var _this4 = this;
 
       if (this._document) {
         if (this._styleFullRefresh) {
@@ -6940,12 +6918,12 @@ var GUI = function () {
 
         if (this._styleRefreshList.length > 0) {
           (function () {
-            _this5._styleUpdating = true;
+            _this4._styleUpdating = true;
 
-            var styleElements = _this5._document.querySelectorAll('style');
+            var styleElements = _this4._document.querySelectorAll('style');
 
             var processedElements = new Set();
-            var ruleList = (0, _toConsumableArray2.default)(_this5._ruleListImported);
+            var ruleList = (0, _toConsumableArray2.default)(_this4._ruleListImported);
 
             var _iterator7 = _createForOfIteratorHelper(styleElements.values()),
                 _step7;
@@ -6994,13 +6972,13 @@ var GUI = function () {
             var allElements = null;
             var pseudoMap = new Map();
 
-            if (_this5._styleFullRefresh) {
-              allElements = _this5._querySelectorAll(_this5._document, '*', true, true);
+            if (_this4._styleFullRefresh) {
+              allElements = _this4._querySelectorAll(_this4._document, '*', true, true);
             }
 
             if (ruleList.length > 0) {
-              if (_this5._styleRefreshList.indexOf(_this5._document) >= 0) {
-                _this5._styleRefreshList.splice(0, _this5._styleRefreshList.length, _this5._document);
+              if (_this4._styleRefreshList.indexOf(_this4._document) >= 0) {
+                _this4._styleRefreshList.splice(0, _this4._styleRefreshList.length, _this4._document);
               }
 
               ruleList.sort(function (a, b) {
@@ -7013,7 +6991,7 @@ var GUI = function () {
               try {
                 var _loop5 = function _loop5() {
                   var rule = _step8.value;
-                  rule.rule.resolve(_this5._styleRefreshList, true, true, function (node, type) {
+                  rule.rule.resolve(_this4._styleRefreshList, true, true, function (node, type) {
                     var pseudoTypes = pseudoMap.get(node) || new Map();
                     pseudoMap.set(node, pseudoTypes);
                     var styleList = pseudoTypes.get(type) || [];
@@ -7049,7 +7027,7 @@ var GUI = function () {
                     _iterator9.f();
                   }
 
-                  if (!_this5._styleFullRefresh) {
+                  if (!_this4._styleFullRefresh) {
                     var _iterator10 = _createForOfIteratorHelper(pseudoMap),
                         _step10;
 
@@ -7083,7 +7061,7 @@ var GUI = function () {
               });
             }
 
-            if (_this5._styleFullRefresh) {
+            if (_this4._styleFullRefresh) {
               var _iterator11 = _createForOfIteratorHelper(allElements),
                   _step11;
 
@@ -7105,7 +7083,7 @@ var GUI = function () {
                 _iterator11.f();
               }
             } else {
-              var _iterator12 = _createForOfIteratorHelper(_this5._styleRefreshList),
+              var _iterator12 = _createForOfIteratorHelper(_this4._styleRefreshList),
                   _step12;
 
               try {
@@ -7125,7 +7103,7 @@ var GUI = function () {
               }
             }
 
-            _this5._styleUpdating = false;
+            _this4._styleUpdating = false;
           })();
         }
       }
@@ -7613,7 +7591,7 @@ var GUI = function () {
     key: "_importLinkContent",
     value: function _importLinkContent(link) {
       return __awaiter(this, void 0, void 0, _regenerator.default.mark(function _callee4() {
-        var _this6 = this;
+        var _this5 = this;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -7626,7 +7604,7 @@ var GUI = function () {
               case 3:
                 _context4.next = 5;
                 return this._importRuleListFromURL(link.getAttribute('href')).then(function () {
-                  return _this6.requireFullStyleRefresh();
+                  return _this5.requireFullStyleRefresh();
                 }).catch(function (reason) {
                   return console.error(reason);
                 });
@@ -7782,55 +7760,19 @@ var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "../node_modules/@babel/runtime/helpers/createClass.js"));
 
-var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "../node_modules/@babel/runtime/helpers/inherits.js"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "../node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
-
-var _typeof2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/typeof */ "../node_modules/@babel/runtime/helpers/typeof.js"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
-
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-var __decorate = void 0 && (void 0).__decorate || function (decorators, target, key, desc) {
-  var c = arguments.length,
-      r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
-      d;
-  if ((typeof Reflect === "undefined" ? "undefined" : (0, _typeof2.default)(Reflect)) === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
-    if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-  }
-  return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-
-var __metadata = void 0 && (void 0).__metadata || function (k, v) {
-  if ((typeof Reflect === "undefined" ? "undefined" : (0, _typeof2.default)(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.GUIHitTestVisitor = void 0;
 
-var misc_1 = __webpack_require__(/*! ./misc */ "./misc/index.ts");
-
 var _1 = __webpack_require__(/*! . */ "./index.ts");
 
-var GUIHitTestVisitor = function (_misc_1$Visitor) {
-  (0, _inherits2.default)(GUIHitTestVisitor, _misc_1$Visitor);
-
-  var _super = _createSuper(GUIHitTestVisitor);
-
+var GUIHitTestVisitor = function () {
   function GUIHitTestVisitor(x, y) {
-    var _this;
-
     (0, _classCallCheck2.default)(this, GUIHitTestVisitor);
-    _this = _super.call(this);
-    _this._x = x;
-    _this._y = y;
-    _this._hits = [];
-    return _this;
+    this._x = x;
+    this._y = y;
+    this._hits = [];
   }
 
   (0, _createClass2.default)(GUIHitTestVisitor, [{
@@ -7839,8 +7781,8 @@ var GUIHitTestVisitor = function (_misc_1$Visitor) {
       return this._hits;
     }
   }, {
-    key: "visitElement",
-    value: function visitElement(w) {
+    key: "visitNode",
+    value: function visitNode(w) {
       if (w._isVisible() && !w._isText()) {
         var v = w.toAbsolute({
           x: 0,
@@ -7870,9 +7812,7 @@ var GUIHitTestVisitor = function (_misc_1$Visitor) {
     }
   }]);
   return GUIHitTestVisitor;
-}(misc_1.Visitor);
-
-__decorate([misc_1.visitor(_1.RMLNode), __metadata("design:type", Function), __metadata("design:paramtypes", [_1.RMLNode]), __metadata("design:returntype", void 0)], GUIHitTestVisitor.prototype, "visitElement", null);
+}();
 
 exports.GUIHitTestVisitor = GUIHitTestVisitor;
 
@@ -10733,11 +10673,6 @@ var RMLNode = RMLNode_1 = function () {
       }
     }
   }, {
-    key: "accept",
-    value: function accept(v) {
-      v.visit(this);
-    }
-  }, {
     key: "traverse",
     value: function traverse(v, inverse, render) {
       if (!this._isVisible()) {
@@ -10756,9 +10691,9 @@ var RMLNode = RMLNode_1 = function () {
             this._childNodes[this._renderOrder[i]].traverse(v, inverse, render);
           }
 
-          v.visit(this);
+          v.visitNode(this);
         } else {
-          v.visit(this);
+          v.visitNode(this);
 
           for (var _i2 = 0; _i2 < this._renderOrder.length; _i2++) {
             this._childNodes[this._renderOrder[_i2]].traverse(v, inverse, render);
@@ -10770,9 +10705,9 @@ var RMLNode = RMLNode_1 = function () {
             this._childNodes[_i3].traverse(v, inverse, render);
           }
 
-          v.visit(this);
+          v.visitNode(this);
         } else {
-          v.visit(this);
+          v.visitNode(this);
 
           var _iterator = _createForOfIteratorHelper(this._childNodes),
               _step;
@@ -13095,7 +13030,7 @@ var CanvasRenderer = function () {
         var b = data[base + 5];
         var a = data[base + 6];
 
-        if (y1 === y2 && y3 === y4 && x1 === x3 && x2 === x4) {
+        if (y1 === y2 && y3 === y4 && x1 === x4 && x2 === x3) {
           if (texture) {
             var tw = this.getTextureWidth(texture);
             var th = this.getTextureHeight(texture);

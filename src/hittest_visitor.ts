@@ -1,12 +1,10 @@
-import { Visitor, visitor } from './misc';
 import { RMLNode, ElementHittestEvent, Vec2 } from '.';
 
-export class GUIHitTestVisitor extends Visitor {
+export class GUIHitTestVisitor {
     private _x: number;
     private _y: number;
     private _hits: { element:RMLNode, x:number, y:number }[];
     constructor (x: number, y: number) {
-        super ();
         this._x = x;
         this._y = y;
         this._hits = [];
@@ -14,8 +12,7 @@ export class GUIHitTestVisitor extends Visitor {
     getHits (): { element:RMLNode, x:number, y:number }[] {
         return this._hits;
     }
-    @visitor(RMLNode)
-    visitElement (w: RMLNode) {
+    visitNode (w: RMLNode) {
         if (w._isVisible() && !w._isText()) {
             const v = w.toAbsolute ({ x:0, y:0 });
             let x = this._x - v.x;

@@ -1,6 +1,5 @@
 import * as Yoga from './typeflex/api';
 import { Renderer, Texture, Font, GlyphManager, IGlyphInfo, ImageManager, GUIHitTestVisitor, UILayout, UIRect, RMLNode, RMLElement, Input, RMLDocument, StyleElement, IStyleSheet, parseStyleSheet, Event, DOMTreeEvent, GUIMouseEvent, GUIKeyEvent, GUIFocusEvent, RMLSelector, Rule, Vec2, assert, EventTarget, eventtarget, RMLPrimitiveBatchList } from '.';
-import { Visitor, visitor } from './misc';
 import { FileLoader, LoadManager } from './asset';
 
 interface IElementConstructor {
@@ -11,14 +10,12 @@ interface ITagNameGetter {
     (element: RMLElement): string;
 }
 
-class GUIDrawVisitor extends Visitor {
+class GUIDrawVisitor {
     private _renderer: Renderer;
     constructor (renderer: Renderer) {
-        super ();
         this._renderer = renderer;
     }
-    @visitor(RMLNode)
-    visitElement (w: RMLNode) {
+    visitNode (w: RMLNode) {
         if (w._isVisible()) {
             w.draw (this._renderer);
         }

@@ -526,8 +526,10 @@ declare module 'flui/nodelist' {
 
 declare module 'flui/node' {
     import { Vec2, EventTarget, RMLElement, RMLDocument, RMLNodeList, Renderer, GUI, UIRect, ElementStyle } from 'flui/';
-    import { Visitor } from 'flui/misc';
     export interface RMLNode<U = RMLNode<any>> extends EventTarget {
+    }
+    export interface INodeVisitor {
+        visitNode(w: RMLNode): void;
     }
     export class RMLNode<U extends RMLNode<any> = RMLNode<any>> {
         static readonly UNKNOWN_NODE = 0;
@@ -576,8 +578,7 @@ declare module 'flui/node' {
         hasChildNodes(): boolean;
         setCapture(): void;
         releaseCapture(): void;
-        accept(v: Visitor): void;
-        traverse(v: Visitor, inverse?: boolean, render?: boolean): void;
+        traverse(v: INodeVisitor, inverse?: boolean, render?: boolean): void;
         draw(renderer: Renderer): void;
         toAbsolute(v: Vec2): Vec2;
         protected _updateScrollState(): void;
@@ -835,16 +836,15 @@ declare module 'flui/components/scrollbar' {
 }
 
 declare module 'flui/hittest_visitor' {
-    import { Visitor } from 'flui/misc';
     import { RMLNode } from 'flui/';
-    export class GUIHitTestVisitor extends Visitor {
+    export class GUIHitTestVisitor {
         constructor(x: number, y: number);
         getHits(): {
             element: RMLNode;
             x: number;
             y: number;
         }[];
-        visitElement(w: RMLNode): void;
+        visitNode(w: RMLNode): void;
     }
 }
 

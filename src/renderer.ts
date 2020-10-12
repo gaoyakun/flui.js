@@ -90,7 +90,7 @@ export class CanvasRenderer implements Renderer {
             const g = data[base + 4];
             const b = data[base + 5];
             const a = data[base + 6];
-            if (y1 === y2 && y3 === y4 && x1 === x3 && x2 === x4) {
+            if (y1 === y2 && y3 === y4 && x1 === x4 && x2 === x3) {
                 if (texture) {
                     const tw = this.getTextureWidth (texture);
                     const th = this.getTextureHeight (texture);

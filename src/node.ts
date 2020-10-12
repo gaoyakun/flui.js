@@ -1,12 +1,14 @@
 import { assert, Font, Vec2, Vec4, Texture, EventTarget, eventtarget, RMLRectPrimitive, RMLPolygonPrimitive, unescapeCSSString, RMLPrimitiveBatchList, RMLElement, RMLDocument, RMLNodeList, RMLLiveNodeList, Renderer, TextureAtlas, GUI, UIRect, UILayout, ElementStyle, IStyleSheet, ValueChangeEvent, ElementLayoutEvent, Event, DOMTreeEvent, ElementBuildContentEvent, TextContentChangeEvent, Text } from '.';
-import { Visitor } from './misc';
-
 
 export interface RMLNode<U = RMLNode<any> > extends EventTarget {}
 
 const defaultCursor = 'default';
 const tmpUV1 = { x:0, y:0 };
 const tmpUV2 = { x:0, y:0 };
+
+export interface INodeVisitor {
+    visitNode (w: RMLNode): void;
+}
 
 @eventtarget()
 export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
@@ -431,10 +433,7 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
             this._uiscene.setCapture (null);
         }
     }
-    accept (v: Visitor) {
-        v.visit (this);
-    }
-    traverse (v: Visitor, inverse?: boolean, render?: boolean) {
+    traverse (v: INodeVisitor, inverse?: boolean, render?: boolean) {
         if (!this._isVisible()) {
             return;
         }
@@ -447,9 +446,9 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
                 for (let i = this._renderOrder.length-1; i >= 0; i--) {
                     this._childNodes[this._renderOrder[i]].traverse (v, inverse, render);
                 }
-                v.visit (this);
+                v.visitNode (this);
             } else {
-                v.visit (this);
+                v.visitNode (this);
                 for (let i = 0; i < this._renderOrder.length; i++) {
                     this._childNodes[this._renderOrder[i]].traverse (v, inverse, render);
                 }
@@ -459,9 +458,9 @@ export class RMLNode<U extends RMLNode<any> = RMLNode<any> > {
                 for (let i = this._childNodes.length-1; i >= 0; i--) {
                     this._childNodes[i].traverse (v, inverse, render);
                 }
-                v.visit (this);
+                v.visitNode (this);
             } else {
-                v.visit (this);
+                v.visitNode (this);
                 for (const child of this._childNodes) {
                     child.traverse (v, inverse, render);
                 }
