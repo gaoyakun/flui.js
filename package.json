@@ -6,7 +6,8 @@
     "compile": "webpack --config ./scripts/webpack.flui.compile.js",
     "build-release": "webpack --config ./scripts/webpack.flui.release.js",
     "build-debug": "webpack --config ./scripts/webpack.flui.debug.js",
-    "dev": "webpack-dev-server --config ./scripts/webpack.tests.debug.js --mode development --colors"
+    "build-test": "webpack --config ./scripts/webpack.test.js",
+    "dev": "dev-server --config ./scripts/webpack.tests.debug.js --mode development --colors"
   },
   "keywords": [
     "GUI",
@@ -31,6 +32,7 @@
     "babel-loader": "^8.0.6",
     "base64-inline-loader": "^1.1.1",
     "copy-webpack-plugin": "^5.1.1",
+    "dev-server": "^0.1.0",
     "dts-bundle-webpack": "^1.0.2",
     "file-loader": "^5.0.2",
     "html-loader": "^0.5.5",
@@ -49,5 +51,9 @@
     "webpack-merge": "^4.2.2",
     "webpack-plugin-typescript-declaration-bundler": "^1.0.4"
   },
-  "dependencies": {}
+  "dependencies": {
+    "shx": "^0.3.2"
+  },
+  "main": "dist/flui.js",
+  "types": "dist/typings/flui/index.d.ts"
 }

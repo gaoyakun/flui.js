@@ -27,7 +27,7 @@ module.exports = {
       name: 'flui',
       main: Path.resolve(__dirname, '../src/index.d.ts'),
       baseDir: Path.resolve(__dirname, '../src'),
-      out: Path.resolve(__dirname, "../dist/index.d.ts"),
+      out: Path.resolve(__dirname, "../dist/typings/flui/index.d.ts"),
       exclude: /.*\/internal\/.*/,
       removeSource: true
     })

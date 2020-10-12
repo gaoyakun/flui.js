@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "9887e3718b41693db5dc";
+/******/ 	var hotCurrentHash = "183b58323460cc5adc19";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -12985,9 +12985,161 @@ exports.RMLPrimitiveBatch = RMLPrimitiveBatch;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "../node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "../node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "../node_modules/@babel/runtime/helpers/createClass.js"));
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.CanvasRenderer = void 0;
+
+var CanvasRenderer = function () {
+  function CanvasRenderer(cvs) {
+    (0, _classCallCheck2.default)(this, CanvasRenderer);
+
+    if (cvs instanceof HTMLCanvasElement) {
+      this._canvas = cvs;
+      this._ctx = this._canvas.getContext('2d');
+    } else {
+      this._canvas = cvs.canvas;
+      this._ctx = cvs;
+    }
+  }
+
+  (0, _createClass2.default)(CanvasRenderer, [{
+    key: "getCanvas",
+    value: function getCanvas() {
+      return this._canvas;
+    }
+  }, {
+    key: "getContext",
+    value: function getContext() {
+      return this._ctx;
+    }
+  }, {
+    key: "getDrawingBufferWidth",
+    value: function getDrawingBufferWidth() {
+      return this._canvas.width;
+    }
+  }, {
+    key: "getDrawingBufferHeight",
+    value: function getDrawingBufferHeight() {
+      return this._canvas.height;
+    }
+  }, {
+    key: "createTexture",
+    value: function createTexture(width, height, color, linear) {
+      var offscreenCanvas = new OffscreenCanvas(width, height);
+      var ctx = offscreenCanvas.getContext('2d');
+      ctx.fillStyle = "rgba(".concat(Math.floor(color.x * 255), ",").concat(Math.floor(color.y * 255), ",").concat(Math.floor(color.z * 255), ",").concat(color.w, ")");
+      ctx.fillRect(0, 0, width, height);
+      return ctx;
+    }
+  }, {
+    key: "updateTextureWithImage",
+    value: function updateTextureWithImage(texture, bitmap, x, y) {
+      var ctx = texture;
+      ctx.putImageData(bitmap, x, y);
+    }
+  }, {
+    key: "updateTextureWithCanvas",
+    value: function updateTextureWithCanvas(texture, cvs, cvsOffsetX, cvsOffsetY, w, h, x, y) {
+      var ctx = texture;
+      ctx.drawImage(cvs, cvsOffsetX, cvsOffsetY, w, h, x, y, w, h);
+    }
+  }, {
+    key: "getTextureWidth",
+    value: function getTextureWidth(texture) {
+      var ctx = texture;
+      return ctx.canvas.width;
+    }
+  }, {
+    key: "getTextureHeight",
+    value: function getTextureHeight(texture) {
+      var ctx = texture;
+      return ctx.canvas.height;
+    }
+  }, {
+    key: "disposeTexture",
+    value: function disposeTexture(texture) {}
+  }, {
+    key: "setCursorStyle",
+    value: function setCursorStyle(style) {
+      this._canvas.style.cursor = style;
+    }
+  }, {
+    key: "getCursorStyle",
+    value: function getCursorStyle() {
+      return this._canvas.style.cursor;
+    }
+  }, {
+    key: "drawQuads",
+    value: function drawQuads(data, texture) {
+      var numQuads = data.length / 36;
+
+      for (var i = 0; i < numQuads; i++) {
+        var base = i * 36;
+        var x1 = data[base];
+        var y1 = data[base + 1];
+        var x2 = data[base + 9];
+        var y2 = data[base + 10];
+        var x3 = data[base + 18];
+        var y3 = data[base + 19];
+        var x4 = data[base + 27];
+        var y4 = data[base + 28];
+        var r = data[base + 3];
+        var g = data[base + 4];
+        var b = data[base + 5];
+        var a = data[base + 6];
+
+        if (y1 === y2 && y3 === y4 && x1 === x3 && x2 === x4) {
+          if (texture) {
+            var tw = this.getTextureWidth(texture);
+            var th = this.getTextureHeight(texture);
+            var u1 = Math.floor(data[base + 7] * tw);
+            var v1 = Math.floor(data[base + 8] * th);
+            var u2 = Math.floor(data[base + 25] * tw);
+            var v2 = Math.floor(data[base + 26] * th);
+
+            this._ctx.drawImage(texture.canvas, u1, v1, u2 - u1, v2 - v1, x1, y1, x3 - x1, y3 - y1);
+          } else {
+            this._ctx.fillStyle = "rgba(".concat(Math.floor(r * 255), ",").concat(Math.floor(g * 255), ",").concat(Math.floor(b * 255), ",").concat(a, ")");
+
+            this._ctx.fillRect(x1, y1, x3 - x1, y3 - y1);
+          }
+        } else {
+          this._ctx.fillStyle = "rgba(".concat(Math.floor(r * 255), ",").concat(Math.floor(g * 255), ",").concat(Math.floor(b * 255), ",").concat(a, ")");
+
+          this._ctx.beginPath();
+
+          this._ctx.moveTo(x1, y1);
+
+          this._ctx.lineTo(x2, y2);
+
+          this._ctx.lineTo(x3, y3);
+
+          this._ctx.lineTo(x4, y4);
+
+          this._ctx.closePath();
+
+          this._ctx.fill();
+        }
+      }
+    }
+  }, {
+    key: "beginRender",
+    value: function beginRender() {}
+  }, {
+    key: "endRender",
+    value: function endRender() {}
+  }]);
+  return CanvasRenderer;
+}();
+
+exports.CanvasRenderer = CanvasRenderer;
 
 /***/ }),
 
@@ -22257,25 +22409,26 @@ Event.FLAG_DISPATCHED = 1 << 3;
 
 function eventtarget() {
   return function (ctor) {
-    var listeners = {};
-    ctor.prototype.__listeners = listeners;
-
     ctor.prototype.addEventListener = function (type, callback) {
-      if (!(type in this.__listeners)) {
-        this.__listeners[type] = [];
+      var listeners = this.__listeners || {};
+      this.__listeners = listeners;
+
+      if (!(type in listeners)) {
+        listeners[type] = [];
       }
 
-      this.__listeners[type].push(callback);
+      listeners[type].push(callback);
     };
 
     ctor.prototype.removeEventListener = function (type, callback) {
-      if (type in this.__listeners) {
-        var _listeners = this.__listeners[type];
+      var listeners = this.__listeners || {};
 
-        var index = _listeners.indexOf(callback);
+      if (type in listeners) {
+        var stack = listeners[type];
+        var index = stack.indexOf(callback);
 
         if (index >= 0) {
-          _listeners.splice(index, 1);
+          stack.splice(index, 1);
         }
       }
     };
@@ -22286,8 +22439,10 @@ function eventtarget() {
       var obj = this;
 
       while (obj) {
-        if (evt.type in obj.__listeners) {
-          var stack = obj.__listeners[evt.type].slice();
+        var listeners = obj.__listeners || {};
+
+        if (evt.type in listeners) {
+          var stack = listeners[evt.type].slice();
 
           for (var i = 0, l = stack.length; i < l; i++) {
             evt._invokeListener(stack[i], obj);
@@ -22300,6 +22455,8 @@ function eventtarget() {
 
         if (evt.bubbles && !evt.cancelBubble) {
           obj = obj.parentNode || obj.gui || null;
+        } else {
+          break;
         }
       }
 

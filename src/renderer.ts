@@ -20,11 +20,21 @@ export interface Renderer {
 
 export class CanvasRenderer implements Renderer {
     private _canvas: HTMLCanvasElement;
-    constructor (cvs: HTMLCanvasElement) {
-        this._canvas = cvs;
+    private _ctx: CanvasRenderingContext2D;
+    constructor (cvs: HTMLCanvasElement|CanvasRenderingContext2D) {
+        if (cvs instanceof HTMLCanvasElement) {
+            this._canvas = cvs;
+            this._ctx = this._canvas.getContext('2d');
+        } else {
+            this._canvas = cvs.canvas;
+            this._ctx = cvs;
+        }
     }
     getCanvas (): HTMLCanvasElement {
         return this._canvas;
+    }
+    getContext (): CanvasRenderingContext2D {
+        return this._ctx;
     }
     getDrawingBufferWidth (): number {
         return this._canvas.width;
@@ -65,8 +75,48 @@ export class CanvasRenderer implements Renderer {
         return this._canvas.style.cursor;
     }
     drawQuads (data: Float32Array, texture: unknown): void {
-
+        const numQuads = data.length / 36;
+        for (let i = 0; i < numQuads; i++) {
+            const base = i * 36;
+            const x1 = data[base];
+            const y1 = data[base+1];
+            const x2 = data[base+9];
+            const y2 = data[base+10];
+            const x3 = data[base+18];
+            const y3 = data[base+19];
+            const x4 = data[base+27];
+            const y4 = data[base+28];
+            const r = data[base + 3];
+            const g = data[base + 4];
+            const b = data[base + 5];
+            const a = data[base + 6];
+            if (y1 === y2 && y3 === y4 && x1 === x3 && x2 === x4) {
+                if (texture) {
+                    const tw = this.getTextureWidth (texture);
+                    const th = this.getTextureHeight (texture);
+                    const u1 = Math.floor(data[base + 7] * tw);
+                    const v1 = Math.floor(data[base + 8] * th);
+                    const u2 = Math.floor(data[base + 25] * tw);
+                    const v2 = Math.floor(data[base + 26] * th);
+                    this._ctx.drawImage ((texture as OffscreenCanvasRenderingContext2D).canvas, u1, v1, u2 - u1, v2 - v1, x1, y1, x3 - x1, y3 - y1);
+                } else {
+                    this._ctx.fillStyle = `rgba(${Math.floor(r * 255)},${Math.floor(g * 255)},${Math.floor(b * 255)},${a})`;
+                    this._ctx.fillRect (x1, y1, x3 - x1, y3 - y1);
+                }
+            } else {
+                this._ctx.fillStyle = `rgba(${Math.floor(r * 255)},${Math.floor(g * 255)},${Math.floor(b * 255)},${a})`;
+                this._ctx.beginPath ();
+                this._ctx.moveTo (x1, y1);
+                this._ctx.lineTo (x2, y2);
+                this._ctx.lineTo (x3, y3);
+                this._ctx.lineTo (x4, y4);
+                this._ctx.closePath ();
+                this._ctx.fill ();
+            }
+        }
     }
-    beginRender (): void;
-    endRender (): void;
+    beginRender (): void {
+    }
+    endRender (): void {
+    }
 }

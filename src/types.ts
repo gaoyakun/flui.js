@@ -103,21 +103,21 @@ export interface EventTarget {
 
 export function eventtarget () {
     return function (ctor: any) {
-        const listeners: { [type: string]: EventListener[] } = {};
-        ctor.prototype.__listeners = listeners;
-
         ctor.prototype.addEventListener = function (type: string, callback: EventListener) {
-            if (!(type in this.__listeners)) {
-                this.__listeners[type] = [];
+            const listeners: { [type: string]: EventListener[] } = this.__listeners || {};
+            this.__listeners = listeners;
+            if (!(type in listeners)) {
+                listeners[type] = [];
             }
-            this.__listeners[type].push (callback);
+            listeners[type].push (callback);
         };
         ctor.prototype.removeEventListener = function (type: string, callback: EventListener) {
-            if (type in this.__listeners) {
-                const listeners = this.__listeners[type] as EventListener[];
-                const index = listeners.indexOf (callback);
+            const listeners: { [type: string]: EventListener[] } = this.__listeners || {};
+            if (type in listeners) {
+                const stack = listeners[type] as EventListener[];
+                const index = stack.indexOf (callback);
                 if (index >= 0) {
-                    listeners.splice (index, 1);
+                    stack.splice (index, 1);
                 }
             }
         };
@@ -125,8 +125,9 @@ export function eventtarget () {
             evt._prepareDispatch (this);
             let obj = this;
             while (obj) {
-                if (evt.type in obj.__listeners) {
-                    const stack = obj.__listeners[evt.type].slice();
+                const listeners: { [type: string]: EventListener[] } = obj.__listeners || {};
+                if (evt.type in listeners) {
+                    const stack = listeners[evt.type].slice();
                     for (let i = 0, l = stack.length; i < l; i++) {
                         evt._invokeListener (stack[i], obj);
                         if (evt.cancelImmediate) {
@@ -136,6 +137,8 @@ export function eventtarget () {
                 }
                 if (evt.bubbles && !evt.cancelBubble) {
                     obj = obj.parentNode || obj.gui || null;
+                } else {
+                    break;
                 }
             }
             return !evt.defaultPrevented;
