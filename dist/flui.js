@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "3c5cd3c7221c12e97211";
+/******/ 	var hotCurrentHash = "f7ae7f9234e867757ae5";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -12938,13 +12938,21 @@ var CanvasRenderer = function () {
     if (cvs instanceof HTMLCanvasElement) {
       this._canvas = cvs;
       this._ctx = this._canvas.getContext('2d');
+      this._ctx.imageSmoothingEnabled = false;
     } else {
       this._canvas = cvs.canvas;
       this._ctx = cvs;
     }
+
+    this._textures = [];
   }
 
   (0, _createClass2.default)(CanvasRenderer, [{
+    key: "getTextures",
+    value: function getTextures() {
+      return this._textures;
+    }
+  }, {
     key: "getCanvas",
     value: function getCanvas() {
       return this._canvas;
@@ -12967,10 +12975,19 @@ var CanvasRenderer = function () {
   }, {
     key: "createTexture",
     value: function createTexture(width, height, color, linear) {
-      var offscreenCanvas = new OffscreenCanvas(width, height);
-      var ctx = offscreenCanvas.getContext('2d');
+      var cvs = document.createElement('canvas');
+      cvs.style.width = "".concat(width, "px");
+      cvs.style.height = "".concat(height, "px");
+      cvs.width = width;
+      cvs.height = height;
+      var ctx = cvs.getContext('2d');
+      ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "rgba(".concat(Math.floor(color.x * 255), ",").concat(Math.floor(color.y * 255), ",").concat(Math.floor(color.z * 255), ",").concat(color.w, ")");
       ctx.fillRect(0, 0, width, height);
+
+      this._textures.push(ctx);
+
+      document.body.append(cvs);
       return ctx;
     }
   }, {
@@ -13014,6 +13031,8 @@ var CanvasRenderer = function () {
     key: "drawQuads",
     value: function drawQuads(data, texture) {
       var numQuads = data.length / 36;
+      var round = Math.round;
+      var floor = Math.floor;
 
       for (var i = 0; i < numQuads; i++) {
         var base = i * 36;
@@ -13034,19 +13053,19 @@ var CanvasRenderer = function () {
           if (texture) {
             var tw = this.getTextureWidth(texture);
             var th = this.getTextureHeight(texture);
-            var u1 = Math.floor(data[base + 7] * tw);
-            var v1 = Math.floor(data[base + 8] * th);
-            var u2 = Math.floor(data[base + 25] * tw);
-            var v2 = Math.floor(data[base + 26] * th);
+            var u1 = round(data[base + 7] * tw);
+            var v1 = round(data[base + 8] * th);
+            var u2 = round(data[base + 25] * tw);
+            var v2 = round(data[base + 26] * th);
 
             this._ctx.drawImage(texture.canvas, u1, v1, u2 - u1, v2 - v1, x1, y1, x3 - x1, y3 - y1);
           } else {
-            this._ctx.fillStyle = "rgba(".concat(Math.floor(r * 255), ",").concat(Math.floor(g * 255), ",").concat(Math.floor(b * 255), ",").concat(a, ")");
+            this._ctx.fillStyle = "rgba(".concat(floor(r * 255), ",").concat(floor(g * 255), ",").concat(floor(b * 255), ",").concat(a, ")");
 
             this._ctx.fillRect(x1, y1, x3 - x1, y3 - y1);
           }
         } else {
-          this._ctx.fillStyle = "rgba(".concat(Math.floor(r * 255), ",").concat(Math.floor(g * 255), ",").concat(Math.floor(b * 255), ",").concat(a, ")");
+          this._ctx.fillStyle = "rgba(".concat(floor(r * 255), ",").concat(floor(g * 255), ",").concat(floor(b * 255), ",").concat(a, ")");
 
           this._ctx.beginPath();
 

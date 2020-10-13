@@ -21,14 +21,20 @@ export interface Renderer {
 export class CanvasRenderer implements Renderer {
     private _canvas: HTMLCanvasElement;
     private _ctx: CanvasRenderingContext2D;
+    private _textures: CanvasRenderingContext2D[];
     constructor (cvs: HTMLCanvasElement|CanvasRenderingContext2D) {
         if (cvs instanceof HTMLCanvasElement) {
             this._canvas = cvs;
             this._ctx = this._canvas.getContext('2d');
+            this._ctx.imageSmoothingEnabled = false;
         } else {
             this._canvas = cvs.canvas;
             this._ctx = cvs;
         }
+        this._textures = [];
+    }
+    getTextures () {
+        return this._textures;
     }
     getCanvas (): HTMLCanvasElement {
         return this._canvas;
@@ -43,26 +49,33 @@ export class CanvasRenderer implements Renderer {
         return this._canvas.height;
     }
     createTexture (width: number, height: number, color: Vec4, linear: boolean): unknown {
-        const offscreenCanvas = new OffscreenCanvas (width, height);
-        const ctx = offscreenCanvas.getContext ('2d');
+        const cvs = document.createElement('canvas');
+        cvs.style.width = `${width}px`;
+        cvs.style.height = `${height}px`;
+        cvs.width = width;
+        cvs.height = height;
+        const ctx = cvs.getContext ('2d');
+        ctx.clearRect (0, 0, width, height);
         ctx.fillStyle = `rgba(${Math.floor(color.x * 255)},${Math.floor(color.y * 255)},${Math.floor(color.z * 255)},${color.w})`;
         ctx.fillRect (0, 0, width, height);
+        this._textures.push (ctx);
+        document.body.append (cvs);
         return ctx;
     }
     updateTextureWithImage (texture: unknown, bitmap: ImageData, x: number, y: number): void {
-        const ctx = texture as OffscreenCanvasRenderingContext2D;
+        const ctx = texture as CanvasRenderingContext2D;
         ctx.putImageData (bitmap, x, y);
     }
     updateTextureWithCanvas (texture: unknown, cvs: HTMLCanvasElement, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void {
-        const ctx = texture as OffscreenCanvasRenderingContext2D;
+        const ctx = texture as CanvasRenderingContext2D;
         ctx.drawImage (cvs, cvsOffsetX, cvsOffsetY, w, h, x, y, w, h);
     }
     getTextureWidth (texture: unknown): number {
-        const ctx = texture as OffscreenCanvasRenderingContext2D;
+        const ctx = texture as CanvasRenderingContext2D;
         return ctx.canvas.width;
     }
     getTextureHeight (texture: unknown): number {
-        const ctx = texture as OffscreenCanvasRenderingContext2D;
+        const ctx = texture as CanvasRenderingContext2D;
         return ctx.canvas.height;
     }
     disposeTexture (texture: unknown): void {
@@ -76,6 +89,8 @@ export class CanvasRenderer implements Renderer {
     }
     drawQuads (data: Float32Array, texture: unknown): void {
         const numQuads = data.length / 36;
+        const round = Math.round;
+        const floor = Math.floor;
         for (let i = 0; i < numQuads; i++) {
             const base = i * 36;
             const x1 = data[base];
@@ -94,17 +109,17 @@ export class CanvasRenderer implements Renderer {
                 if (texture) {
                     const tw = this.getTextureWidth (texture);
                     const th = this.getTextureHeight (texture);
-                    const u1 = Math.floor(data[base + 7] * tw);
-                    const v1 = Math.floor(data[base + 8] * th);
-                    const u2 = Math.floor(data[base + 25] * tw);
-                    const v2 = Math.floor(data[base + 26] * th);
-                    this._ctx.drawImage ((texture as OffscreenCanvasRenderingContext2D).canvas, u1, v1, u2 - u1, v2 - v1, x1, y1, x3 - x1, y3 - y1);
+                    const u1 = round(data[base + 7] * tw);
+                    const v1 = round(data[base + 8] * th);
+                    const u2 = round(data[base + 25] * tw);
+                    const v2 = round(data[base + 26] * th);
+                    this._ctx.drawImage ((texture as CanvasRenderingContext2D).canvas, u1, v1, u2 - u1, v2 - v1, x1, y1, x3 - x1, y3 - y1);
                 } else {
-                    this._ctx.fillStyle = `rgba(${Math.floor(r * 255)},${Math.floor(g * 255)},${Math.floor(b * 255)},${a})`;
+                    this._ctx.fillStyle = `rgba(${floor(r * 255)},${floor(g * 255)},${floor(b * 255)},${a})`;
                     this._ctx.fillRect (x1, y1, x3 - x1, y3 - y1);
                 }
             } else {
-                this._ctx.fillStyle = `rgba(${Math.floor(r * 255)},${Math.floor(g * 255)},${Math.floor(b * 255)},${a})`;
+                this._ctx.fillStyle = `rgba(${floor(r * 255)},${floor(g * 255)},${floor(b * 255)},${a})`;
                 this._ctx.beginPath ();
                 this._ctx.moveTo (x1, y1);
                 this._ctx.lineTo (x2, y2);

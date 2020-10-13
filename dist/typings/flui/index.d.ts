@@ -115,6 +115,7 @@ declare module 'flui/renderer' {
     }
     export class CanvasRenderer implements Renderer {
         constructor(cvs: HTMLCanvasElement | CanvasRenderingContext2D);
+        getTextures(): CanvasRenderingContext2D[];
         getCanvas(): HTMLCanvasElement;
         getContext(): CanvasRenderingContext2D;
         getDrawingBufferWidth(): number;
