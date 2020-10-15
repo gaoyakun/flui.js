@@ -6,7 +6,7 @@ export interface Renderer {
     getDrawingBufferHeight (): number;
     createTexture (width: number, height: number, color: Vec4, linear: boolean): unknown;
     updateTextureWithImage (texture: unknown, bitmap: ImageData, x: number, y: number): void;
-    updateTextureWithCanvas (texture: unknown, cvs: HTMLCanvasElement, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void;
+    updateTextureWithCanvas (texture: unknown, ctx: CanvasRenderingContext2D, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void;
     getTextureWidth (texture: unknown): number;
     getTextureHeight (texture: unknown): number;
     disposeTexture (texture: unknown): void;
@@ -21,20 +21,15 @@ export interface Renderer {
 export class CanvasRenderer implements Renderer {
     private _canvas: HTMLCanvasElement;
     private _ctx: CanvasRenderingContext2D;
-    private _textures: CanvasRenderingContext2D[];
     constructor (cvs: HTMLCanvasElement|CanvasRenderingContext2D) {
         if (cvs instanceof HTMLCanvasElement) {
             this._canvas = cvs;
-            this._ctx = this._canvas.getContext('2d');
+            this._ctx = this._canvas.getContext('2d', { alpha:true });
             this._ctx.imageSmoothingEnabled = false;
         } else {
             this._canvas = cvs.canvas;
             this._ctx = cvs;
         }
-        this._textures = [];
-    }
-    getTextures () {
-        return this._textures;
     }
     getCanvas (): HTMLCanvasElement {
         return this._canvas;
@@ -54,21 +49,20 @@ export class CanvasRenderer implements Renderer {
         cvs.style.height = `${height}px`;
         cvs.width = width;
         cvs.height = height;
-        const ctx = cvs.getContext ('2d');
+        const ctx = cvs.getContext ('2d', { alpha: true });
         ctx.clearRect (0, 0, width, height);
         ctx.fillStyle = `rgba(${Math.floor(color.x * 255)},${Math.floor(color.y * 255)},${Math.floor(color.z * 255)},${color.w})`;
         ctx.fillRect (0, 0, width, height);
-        this._textures.push (ctx);
-        document.body.append (cvs);
         return ctx;
     }
     updateTextureWithImage (texture: unknown, bitmap: ImageData, x: number, y: number): void {
         const ctx = texture as CanvasRenderingContext2D;
         ctx.putImageData (bitmap, x, y);
     }
-    updateTextureWithCanvas (texture: unknown, cvs: HTMLCanvasElement, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void {
-        const ctx = texture as CanvasRenderingContext2D;
-        ctx.drawImage (cvs, cvsOffsetX, cvsOffsetY, w, h, x, y, w, h);
+    updateTextureWithCanvas (texture: unknown, ctx: CanvasRenderingContext2D, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void {
+        const img = ctx.getImageData (cvsOffsetX, cvsOffsetY, w, h);
+        this.updateTextureWithImage (texture, img, x, y);
+        // ctx.drawImage (cvs, cvsOffsetX, cvsOffsetY, w, h, x, y, w, h);
     }
     getTextureWidth (texture: unknown): number {
         const ctx = texture as CanvasRenderingContext2D;

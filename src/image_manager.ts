@@ -31,7 +31,8 @@ export class ImageManager {
         let cvs = document.createElement('canvas');
         cvs.width = 256;
         cvs.height = 256;
-        const ctx = cvs.getContext('2d');
+        const ctx = cvs.getContext('2d', { alpha:true });
+        ctx.imageSmoothingEnabled = false;
         let offsetX = 0;
         let offsetY = 0;
         
@@ -82,23 +83,29 @@ export class ImageManager {
             { x:0.5, y:0.5 });
     
         size = 32;
-        ctx.clearRect (0, 0, size, size);
-        pathTriangle (ctx, ORIENTATION_VERTICAL, 16, 24, -10, 10, -14);
-        ctx.fill ();
-        atlasInfo = this._atlasManager.pushCanvas ('default.scrollbar.up', ctx, 0, 0, size, size);
-        this._cachedImages['default.scrollbar.up'] = new TextureAtlas (this._atlasManager.getAtlasTexture(atlasInfo.atlasIndex), 
-        { x:atlasInfo.uMin, y:atlasInfo.vMin },
-        { x:atlasInfo.uMax, y:atlasInfo.vMax });
-
-        ctx.clearRect (0, 0, size, size);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect (0, 0, size, size);
+        ctx.fillStyle = '#aaaaaa';
         pathTriangle (ctx, ORIENTATION_VERTICAL, 16, 10, -10, 10, 14);
         ctx.fill ();
         atlasInfo = this._atlasManager.pushCanvas ('default.scrollbar.down', ctx, 0, 0, size, size);
         this._cachedImages['default.scrollbar.down'] = new TextureAtlas (this._atlasManager.getAtlasTexture(atlasInfo.atlasIndex), 
             { x:atlasInfo.uMin, y:atlasInfo.vMin },
             { x:atlasInfo.uMax, y:atlasInfo.vMax });
-       
-        ctx.clearRect (0, 0, size, size);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect (0, 0, size, size);
+        ctx.fillStyle = '#aaaaaa';
+        pathTriangle (ctx, ORIENTATION_VERTICAL, 16, 24, -10, 10, -14);
+        ctx.fill ();
+        atlasInfo = this._atlasManager.pushCanvas ('default.scrollbar.up', ctx, 0, 0, size, size);
+        this._cachedImages['default.scrollbar.up'] = new TextureAtlas (this._atlasManager.getAtlasTexture(atlasInfo.atlasIndex), 
+            { x:atlasInfo.uMin, y:atlasInfo.vMin },
+            { x:atlasInfo.uMax, y:atlasInfo.vMax });
+    
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect (0, 0, size, size);
+        ctx.fillStyle = '#aaaaaa';
         pathTriangle (ctx, ORIENTATION_HORIZONAL, 24, 16, -10, 10, -14);
         ctx.fill ();
         atlasInfo = this._atlasManager.pushCanvas ('default.scrollbar.left', ctx, 0, 0, size, size);
@@ -106,7 +113,9 @@ export class ImageManager {
             { x:atlasInfo.uMin, y:atlasInfo.vMin },
             { x:atlasInfo.uMax, y:atlasInfo.vMax });
        
-        ctx.clearRect (0, 0, size, size);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect (0, 0, size, size);
+        ctx.fillStyle = '#aaaaaa';
         pathTriangle (ctx, ORIENTATION_HORIZONAL, 10, 16, -10, 10, 14);
         ctx.fill ();
         atlasInfo = this._atlasManager.pushCanvas ('default.scrollbar.right', ctx, 0, 0, size, size);

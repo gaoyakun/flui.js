@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "f7ae7f9234e867757ae5";
+/******/ 	var hotCurrentHash = "b3b2fffe100819bfe8db";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -2987,7 +2987,7 @@ var AtlasManager = function () {
         textureAtlas = this._atlasList[atlasIndex];
       }
 
-      this._renderer.updateTextureWithCanvas(textureAtlas, bitmap.canvas, xOffset, yOffset, w, h, x, y);
+      this._renderer.updateTextureWithCanvas(textureAtlas, bitmap, xOffset, yOffset, w, h, x, y);
     }
   }, {
     key: "_updateAtlasTexture",
@@ -3622,9 +3622,7 @@ var ScrollBar = function (_1$Slider) {
       if (name === 'rangeStart' || name === 'rangeEnd') {
         this._invalidateLayout();
       } else if (name === 'buttonSize' || name === 'orientation') {
-        if (name === 'orientation') {
-          this._updateOrientationStyle();
-        }
+        this._updateOrientationStyle();
 
         this._invalidateLayout();
       }
@@ -7869,7 +7867,10 @@ var ImageManager = function () {
       var cvs = document.createElement('canvas');
       cvs.width = 256;
       cvs.height = 256;
-      var ctx = cvs.getContext('2d');
+      var ctx = cvs.getContext('2d', {
+        alpha: true
+      });
+      ctx.imageSmoothingEnabled = false;
       var offsetX = 0;
       var offsetY = 0;
       ctx.lineWidth = 1;
@@ -7930,18 +7931,9 @@ var ImageManager = function () {
         y: 0.5
       });
       size = 32;
-      ctx.clearRect(0, 0, size, size);
-      pathTriangle(ctx, ORIENTATION_VERTICAL, 16, 24, -10, 10, -14);
-      ctx.fill();
-      atlasInfo = this._atlasManager.pushCanvas('default.scrollbar.up', ctx, 0, 0, size, size);
-      this._cachedImages['default.scrollbar.up'] = new _1.TextureAtlas(this._atlasManager.getAtlasTexture(atlasInfo.atlasIndex), {
-        x: atlasInfo.uMin,
-        y: atlasInfo.vMin
-      }, {
-        x: atlasInfo.uMax,
-        y: atlasInfo.vMax
-      });
-      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#aaaaaa';
       pathTriangle(ctx, ORIENTATION_VERTICAL, 16, 10, -10, 10, 14);
       ctx.fill();
       atlasInfo = this._atlasManager.pushCanvas('default.scrollbar.down', ctx, 0, 0, size, size);
@@ -7952,7 +7944,22 @@ var ImageManager = function () {
         x: atlasInfo.uMax,
         y: atlasInfo.vMax
       });
-      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#aaaaaa';
+      pathTriangle(ctx, ORIENTATION_VERTICAL, 16, 24, -10, 10, -14);
+      ctx.fill();
+      atlasInfo = this._atlasManager.pushCanvas('default.scrollbar.up', ctx, 0, 0, size, size);
+      this._cachedImages['default.scrollbar.up'] = new _1.TextureAtlas(this._atlasManager.getAtlasTexture(atlasInfo.atlasIndex), {
+        x: atlasInfo.uMin,
+        y: atlasInfo.vMin
+      }, {
+        x: atlasInfo.uMax,
+        y: atlasInfo.vMax
+      });
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#aaaaaa';
       pathTriangle(ctx, ORIENTATION_HORIZONAL, 24, 16, -10, 10, -14);
       ctx.fill();
       atlasInfo = this._atlasManager.pushCanvas('default.scrollbar.left', ctx, 0, 0, size, size);
@@ -7963,7 +7970,9 @@ var ImageManager = function () {
         x: atlasInfo.uMax,
         y: atlasInfo.vMax
       });
-      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#aaaaaa';
       pathTriangle(ctx, ORIENTATION_HORIZONAL, 10, 16, -10, 10, 14);
       ctx.fill();
       atlasInfo = this._atlasManager.pushCanvas('default.scrollbar.right', ctx, 0, 0, size, size);
@@ -12937,22 +12946,17 @@ var CanvasRenderer = function () {
 
     if (cvs instanceof HTMLCanvasElement) {
       this._canvas = cvs;
-      this._ctx = this._canvas.getContext('2d');
+      this._ctx = this._canvas.getContext('2d', {
+        alpha: true
+      });
       this._ctx.imageSmoothingEnabled = false;
     } else {
       this._canvas = cvs.canvas;
       this._ctx = cvs;
     }
-
-    this._textures = [];
   }
 
   (0, _createClass2.default)(CanvasRenderer, [{
-    key: "getTextures",
-    value: function getTextures() {
-      return this._textures;
-    }
-  }, {
     key: "getCanvas",
     value: function getCanvas() {
       return this._canvas;
@@ -12980,14 +12984,12 @@ var CanvasRenderer = function () {
       cvs.style.height = "".concat(height, "px");
       cvs.width = width;
       cvs.height = height;
-      var ctx = cvs.getContext('2d');
+      var ctx = cvs.getContext('2d', {
+        alpha: true
+      });
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "rgba(".concat(Math.floor(color.x * 255), ",").concat(Math.floor(color.y * 255), ",").concat(Math.floor(color.z * 255), ",").concat(color.w, ")");
       ctx.fillRect(0, 0, width, height);
-
-      this._textures.push(ctx);
-
-      document.body.append(cvs);
       return ctx;
     }
   }, {
@@ -12998,9 +13000,9 @@ var CanvasRenderer = function () {
     }
   }, {
     key: "updateTextureWithCanvas",
-    value: function updateTextureWithCanvas(texture, cvs, cvsOffsetX, cvsOffsetY, w, h, x, y) {
-      var ctx = texture;
-      ctx.drawImage(cvs, cvsOffsetX, cvsOffsetY, w, h, x, y, w, h);
+    value: function updateTextureWithCanvas(texture, ctx, cvsOffsetX, cvsOffsetY, w, h, x, y) {
+      var img = ctx.getImageData(cvsOffsetX, cvsOffsetY, w, h);
+      this.updateTextureWithImage(texture, img, x, y);
     }
   }, {
     key: "getTextureWidth",

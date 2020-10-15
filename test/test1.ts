@@ -1,4 +1,4 @@
-/// <reference path="../dist/typings/flui/index.d.ts"
+/// <reference path="../dist/typings/flui/index.d.ts" />
 
 import { CanvasRenderer, GUI } from 'flui';
 

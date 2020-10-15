@@ -47,9 +47,7 @@ export class ScrollBar extends Slider {
         if (name === 'rangeStart' || name === 'rangeEnd') {
             this._invalidateLayout ();
         } else if (name === 'buttonSize' || name === 'orientation') {
-            if (name === 'orientation') {
-                this._updateOrientationStyle ();
-            }
+            this._updateOrientationStyle ();
             this._invalidateLayout ();
         }
 }

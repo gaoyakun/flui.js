@@ -102,7 +102,7 @@ export class AtlasManager<U extends AtlasManager<any> = AtlasManager<any> > {
         } else {
             textureAtlas = this._atlasList[atlasIndex];
         }
-        this._renderer.updateTextureWithCanvas (textureAtlas, bitmap.canvas, xOffset, yOffset, w, h, x, y);
+        this._renderer.updateTextureWithCanvas (textureAtlas, bitmap, xOffset, yOffset, w, h, x, y);
     }
     private _updateAtlasTexture (atlasIndex: number, bitmap: ImageData, x: number, y: number, w: number, h: number) {
         let textureAtlas: Texture = null;

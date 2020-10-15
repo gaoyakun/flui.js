@@ -23,20 +23,23 @@ module.exports = {
   plugins: [
       new HtmlWebpackPlugin({
           title: 'test1',
-          template: 'index.html',
+          template: Path.resolve(__dirname, '../test/index.html'),
           filename: 'index.html',
           showErrors: true,
           inject: 'body'
-      })
+      }),
+      new Webpack.DefinePlugin({
+        'process.env': {
+          NODE_ENV: '"development"'
+        }
+      }),
+      new Webpack.HotModuleReplacementPlugin()
   ],
   resolve: {
     extensions: ['.d.ts','.ts','.js'],
   },
   devtool: '#source-map',
   mode: 'development',
-  output: {
-    publicPath: '/'
-  },
   devServer: {
     hot: true,
     port: 9999,
@@ -48,15 +51,7 @@ module.exports = {
     namedModules: true,
     noEmitOnErrors: true
   },
-  plugins: [
-    new Webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"development"'
-      }
-    }),
-    new Webpack.HotModuleReplacementPlugin()
-  ],
   externals: {
     'flui': 'flui'
-    }
+  }
 };

@@ -103,7 +103,7 @@ declare module 'flui/renderer' {
         getDrawingBufferHeight(): number;
         createTexture(width: number, height: number, color: Vec4, linear: boolean): unknown;
         updateTextureWithImage(texture: unknown, bitmap: ImageData, x: number, y: number): void;
-        updateTextureWithCanvas(texture: unknown, cvs: HTMLCanvasElement, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void;
+        updateTextureWithCanvas(texture: unknown, ctx: CanvasRenderingContext2D, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void;
         getTextureWidth(texture: unknown): number;
         getTextureHeight(texture: unknown): number;
         disposeTexture(texture: unknown): void;
@@ -115,14 +115,13 @@ declare module 'flui/renderer' {
     }
     export class CanvasRenderer implements Renderer {
         constructor(cvs: HTMLCanvasElement | CanvasRenderingContext2D);
-        getTextures(): CanvasRenderingContext2D[];
         getCanvas(): HTMLCanvasElement;
         getContext(): CanvasRenderingContext2D;
         getDrawingBufferWidth(): number;
         getDrawingBufferHeight(): number;
         createTexture(width: number, height: number, color: Vec4, linear: boolean): unknown;
         updateTextureWithImage(texture: unknown, bitmap: ImageData, x: number, y: number): void;
-        updateTextureWithCanvas(texture: unknown, cvs: HTMLCanvasElement, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void;
+        updateTextureWithCanvas(texture: unknown, ctx: CanvasRenderingContext2D, cvsOffsetX: number, cvsOffsetY: number, w: number, h: number, x: number, y: number): void;
         getTextureWidth(texture: unknown): number;
         getTextureHeight(texture: unknown): number;
         disposeTexture(texture: unknown): void;
