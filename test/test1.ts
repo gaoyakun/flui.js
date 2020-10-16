@@ -4,6 +4,13 @@ import { CanvasRenderer, GUI } from 'flui';
 
 const renderer = new CanvasRenderer (document.getElementById ('canvas') as HTMLCanvasElement);
 const gui = new GUI (renderer);
+gui.deserializeFromXML (document.querySelector('#main-ui').innerHTML).then(()=>{
+    requestAnimationFrame (function renderGUI () {
+        gui.render ();
+        requestAnimationFrame (renderGUI);    
+    });
+});
+/*
 const doc = gui.document;
 
 doc.documentElement.style.position = 'absolute';
@@ -29,15 +36,6 @@ root.style.font = '16px arial';
 root.style.flex = '0 1 auto';
 root.style.overflow = 'auto';
 doc.body.append (root);
-/*
-const div = doc.createElement('div');
-div.id = 'div';
-div.style.position = 'absolute';
-div.style.width = 300;
-div.style.height = 300;
-div.style.backgroundColor = 'green';
-root.append (div);
-*/
 
 const menuBar = gui.createElement ('div');
 menuBar.id = 'menubar';
@@ -128,12 +126,6 @@ btnRemoveText.addEventListener ('click', function(){
         bar3.removeChild (bar3.firstChild);
     }
 });
-
-function renderGUI () {
-    gui.render ();
-    requestAnimationFrame (renderGUI);    
-}
-
-requestAnimationFrame (renderGUI);
+*/
 
 

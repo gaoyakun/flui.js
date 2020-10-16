@@ -26,7 +26,7 @@ module.exports = {
           template: Path.resolve(__dirname, '../test/index.html'),
           filename: 'index.html',
           showErrors: true,
-          inject: 'body'
+          inject: false
       }),
       new Webpack.DefinePlugin({
         'process.env': {
