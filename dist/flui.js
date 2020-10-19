@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "de7f1958640f72cc9d9f";
+/******/ 	var hotCurrentHash = "8dda003c526fefb31bea";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -6641,8 +6641,6 @@ var GUI = function () {
                 y: 0
               });
 
-              console.log("".concat(info.element.id, " mouseout"));
-
               info.element._onMouseOut(mouseEvent.x - _p.x, mouseEvent.y - _p.y);
 
               if (info.element.enabled) {
@@ -6661,8 +6659,6 @@ var GUI = function () {
             if (!_this3._hoverElements.find(function (hit) {
               return hit.element === info.element;
             })) {
-              console.log("".concat(info.element.id, " mousein"));
-
               info.element._onMouseIn(info.x, info.y);
 
               if (info.element.enabled) {
