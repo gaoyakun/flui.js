@@ -1,5 +1,5 @@
 import * as Yoga from './typeflex/api';
-import { Renderer, Texture, Font, GlyphManager, IGlyphInfo, ImageManager, GUIHitTestVisitor, UILayout, UIRect, RMLNode, RMLElement, Input, RMLDocument, StyleElement, IStyleSheet, parseStyleSheet, Event, DOMTreeEvent, GUIMouseEvent, GUIKeyEvent, GUIFocusEvent, RMLSelector, Rule, Vec2, assert, EventTarget, eventtarget, RMLPrimitiveBatchList } from '.';
+import { Renderer, Texture, Vec4, Font, GlyphManager, IGlyphInfo, ImageManager, GUIHitTestVisitor, UILayout, UIRect, RMLNode, RMLElement, Input, RMLDocument, StyleElement, IStyleSheet, parseStyleSheet, Event, DOMTreeEvent, GUIMouseEvent, GUIKeyEvent, GUIFocusEvent, RMLSelector, Rule, Vec2, assert, EventTarget, eventtarget, RMLPrimitiveBatchList } from '.';
 import { FileLoader, LoadManager } from './asset';
 
 interface IElementConstructor {
@@ -53,13 +53,13 @@ export function tagname (name: string) {
 
 export interface GUI extends EventTarget {}
 
-const deviceMouseEvents = [
-    GUIMouseEvent.NAME_MOUSEDOWN,
-    GUIMouseEvent.NAME_MOUSEUP,
-    GUIMouseEvent.NAME_MOUSEMOVE, 
-    GUIMouseEvent.NAME_MOUSECLICK, 
-    GUIMouseEvent.NAME_MOUSEDBLCLICK
-];
+const deviceMouseEvents = {
+    [GUIMouseEvent.NAME_RENDERER_MOUSEDOWN]: GUIMouseEvent.NAME_MOUSEDOWN,
+    [GUIMouseEvent.NAME_RENDERER_MOUSEUP]: GUIMouseEvent.NAME_MOUSEUP,
+    [GUIMouseEvent.NAME_RENDERER_MOUSEMOVE]: GUIMouseEvent.NAME_MOUSEMOVE, 
+    [GUIMouseEvent.NAME_RENDERER_MOUSECLICK]: GUIMouseEvent.NAME_MOUSECLICK, 
+    [GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK]: GUIMouseEvent.NAME_MOUSEDBLCLICK
+};
 
 const deviceKeyEvents = [
     GUIKeyEvent.NAME_KEYDOWN,
@@ -151,10 +151,10 @@ export class GUI {
                 }, 0);
             }
         });
-        for (const evt of deviceMouseEvents) {
+        for (const evt in deviceMouseEvents) {
             this.addEventListener (evt, function (this: GUI, e: Event) {
                 const mouseEvent: GUIMouseEvent = e as GUIMouseEvent;
-                if (evt === GUIMouseEvent.NAME_MOUSEMOVE) {
+                if (evt === GUIMouseEvent.NAME_RENDERER_MOUSEMOVE) {
                     let hits: { element:RMLNode, x:number, y:number }[] = null;
                     if (this._captureElement) {
                         const v = this._captureElement.toAbsolute ({ x:0, y:0 });
@@ -180,7 +180,7 @@ export class GUI {
                         if (!this._hoverElements.find (hit => hit.element === info.element)) {
                             info.element._onMouseIn (info.x, info.y);
                             if (info.element.enabled) {
-                                info.element.dispatchEvent (new GUIMouseEvent(GUIMouseEvent.NAME_MOUSEIN, info.x, info.y, mouseEvent.button, mouseEvent.keymod));
+                                info.element.dispatchEvent (new GUIMouseEvent(GUIMouseEvent.NAME_MOUSEOVER, info.x, info.y, mouseEvent.button, mouseEvent.keymod));
                             }
                         }
                     }
@@ -205,10 +205,10 @@ export class GUI {
                 }
                 if (this._hoverElements.length > 0) {
                     if (mouseEvent.button === 1) {
-                        if (evt === GUIMouseEvent.NAME_MOUSEDOWN) {
+                        if (evt === GUIMouseEvent.NAME_RENDERER_MOUSEDOWN) {
                             this._hoverElements[0].element._onMouseDown (this._hoverElements[0].x, this._hoverElements[0].y);
                             this.setFocus (this._hoverElements[0].element.enabled ? this._hoverElements[0].element : null);
-                        } else if (evt === GUIMouseEvent.NAME_MOUSEUP) {
+                        } else if (evt === GUIMouseEvent.NAME_RENDERER_MOUSEUP) {
                             this._hoverElements[0].element._onMouseUp (this._hoverElements[0].x, this._hoverElements[0].y);
                         }
                     }
@@ -216,7 +216,7 @@ export class GUI {
                         if (!info.element.enabled) {
                             continue;
                         }
-                        const me = new GUIMouseEvent(evt, info.x, info.y, mouseEvent.button, mouseEvent.keymod);
+                        const me = new GUIMouseEvent(deviceMouseEvents[evt], info.x, info.y, mouseEvent.button, mouseEvent.keymod);
                         info.element.dispatchEvent (me);
                         if (me.cancelBubble) {
                             break;
@@ -262,6 +262,7 @@ export class GUI {
         };
         this.addEventListener (DOMTreeEvent.NAME_INSERTED, domChangeFunc);
         this.addEventListener (DOMTreeEvent.NAME_REMOVED, domChangeFunc);
+        this._renderer.injectEvents (this);
         this._document = new RMLDocument (this);
         this._topLayout.appendChild (this._document._getLayout());
         const root = this._document.createElement ('html');
@@ -519,8 +520,12 @@ export class GUI {
         return this._glyphManager.getGlyphTexture(index);
     }
     /** @internal */
-    _getGlyphInfo (char: string, font: Font): IGlyphInfo {
-        return this._glyphManager.getGlyphInfo (char, font);
+    _getGlyphInfo (char: string, font: Font, color: Vec4): IGlyphInfo {
+        return this._glyphManager.getGlyphInfo (char, font, color);
+    }
+    /** @internal */
+    _getCharWidth (char: string, font: Font): number {
+        return this._glyphManager.getCharWidth (char, font);
     }
     /** @internal */
     _measureStringWidth (str: string, charMargin: number, font: Font) {

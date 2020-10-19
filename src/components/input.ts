@@ -225,10 +225,8 @@ export class Input extends RMLElement<Input> {
     private _calcCursorPos (pos: number): number {
         let x = this.style.getPaddingLeft();
         for (let i = 0; i < pos; i++) {
-            const glyph = this._uiscene._getGlyphInfo (this._text.textContent[i], this._getCachedFont());
-            if (glyph) {
-                x += glyph.width + this._text.charMargin;
-            }
+            const width = this._uiscene._getCharWidth (this._text.textContent[i], this._getCachedFont());
+            x += width + this._text.charMargin;
         }
         return x;
     }

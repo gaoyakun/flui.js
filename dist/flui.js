@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "b3b2fffe100819bfe8db";
+/******/ 	var hotCurrentHash = "de7f1958640f72cc9d9f";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -3415,11 +3415,9 @@ var Input = function (_1$RMLElement) {
       var x = this.style.getPaddingLeft();
 
       for (var i = 0; i < pos; i++) {
-        var glyph = this._uiscene._getGlyphInfo(this._text.textContent[i], this._getCachedFont());
+        var width = this._uiscene._getCharWidth(this._text.textContent[i], this._getCachedFont());
 
-        if (glyph) {
-          x += glyph.width + this._text.charMargin;
-        }
+        x += width + this._text.charMargin;
       }
 
       return x;
@@ -4373,16 +4371,14 @@ var Text = function (_1$RMLNode) {
       }
 
       for (var _i = 0; _i < lines[l].length; _i++) {
-        var glyph = this._uiscene._getGlyphInfo(lines[l][_i], font);
+        var width = this._uiscene._getCharWidth(lines[l][_i], font);
 
-        if (glyph) {
-          if (px <= t + (glyph.width >> 1)) {
-            break;
-          }
-
-          t += glyph.width + charMargin;
-          c++;
+        if (px <= t + (width >> 1)) {
+          break;
         }
+
+        t += width + charMargin;
+        c++;
       }
 
       return {
@@ -4590,7 +4586,7 @@ var Text = function (_1$RMLNode) {
                 var n = autoWrap ? Math.max(1, this._uiscene._clipStringToWidth(line, this._layout.clientRect.width, charMargin, start, font)) : line.length;
 
                 for (var i = start; i < start + n; i++) {
-                  var glyph = this._uiscene._getGlyphInfo(line[i], font);
+                  var glyph = this._uiscene._getGlyphInfo(line[i], font, fontColor);
 
                   if (glyph) {
                     var tex = this._uiscene._getGlyphTexture(glyph.atlasIndex);
@@ -5671,6 +5667,11 @@ var GUIMouseEvent = function (_$Event) {
 }(_1.Event);
 
 exports.GUIMouseEvent = GUIMouseEvent;
+GUIMouseEvent.NAME_RENDERER_MOUSEDOWN = 'renderermousedown';
+GUIMouseEvent.NAME_RENDERER_MOUSEUP = 'renderermouseup';
+GUIMouseEvent.NAME_RENDERER_MOUSEMOVE = 'rendermousemove';
+GUIMouseEvent.NAME_RENDERER_MOUSECLICK = 'rendererclick';
+GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK = 'rendererdblclick';
 GUIMouseEvent.NAME_MOUSEDOWN = 'mousedown';
 GUIMouseEvent.NAME_MOUSEUP = 'mouseup';
 GUIMouseEvent.NAME_MOUSEMOVE = 'mousemove';
@@ -5678,7 +5679,7 @@ GUIMouseEvent.NAME_MOUSECLICK = 'click';
 GUIMouseEvent.NAME_MOUSEDBLCLICK = 'dblclick';
 GUIMouseEvent.NAME_MOUSEENTER = 'mouseenter';
 GUIMouseEvent.NAME_MOUSELEAVE = 'mouseleave';
-GUIMouseEvent.NAME_MOUSEIN = 'mousein';
+GUIMouseEvent.NAME_MOUSEOVER = 'mouseover';
 GUIMouseEvent.NAME_MOUSEOUT = 'mouseout';
 
 var GUIKeyEvent = function (_$Event2) {
@@ -6224,8 +6225,6 @@ exports.GlyphManager = void 0;
 
 var _1 = __webpack_require__(/*! . */ "./index.ts");
 
-var updateByCanvas = false;
-
 var GlyphManager = function (_$AtlasManager) {
   (0, _inherits2.default)(GlyphManager, _$AtlasManager);
 
@@ -6243,15 +6242,15 @@ var GlyphManager = function (_$AtlasManager) {
     }
   }, {
     key: "getGlyphInfo",
-    value: function getGlyphInfo(char, font) {
-      if (!char || !font) {
+    value: function getGlyphInfo(char, font, color) {
+      if (!char || !font || !color) {
         return null;
       }
 
-      var glyphInfo = this.getAtlasInfo(this._hash(char, font));
+      var glyphInfo = this.getAtlasInfo(this._hash(char, font, color));
 
       if (!glyphInfo) {
-        glyphInfo = this._cacheGlyph(char, font);
+        glyphInfo = this._cacheGlyph(char, font, color);
       }
 
       return glyphInfo;
@@ -6263,8 +6262,8 @@ var GlyphManager = function (_$AtlasManager) {
 
       for (var i = 0; i < str.length; i++) {
         var margin = i === 0 ? 0 : charMargin;
-        var glyphInfo = this.getGlyphInfo(str[i], font);
-        w += margin + (glyphInfo ? glyphInfo.width : 0);
+        var width = this.getCharWidth(str[i], font);
+        w += margin + width;
       }
 
       return w;
@@ -6277,11 +6276,13 @@ var GlyphManager = function (_$AtlasManager) {
 
       for (; i < str.length; i++) {
         var margin = i === start ? 0 : charMargin;
-        var glyphInfo = this.getGlyphInfo(str[i], font);
-        var charWidth = margin + (glyphInfo ? glyphInfo.width : 0);
+
+        var _width = this.getCharWidth(str[i], font);
+
+        var charWidth = margin + _width;
         sum += charWidth;
 
-        if (sum > width) {
+        if (sum > _width) {
           break;
         }
       }
@@ -6289,26 +6290,52 @@ var GlyphManager = function (_$AtlasManager) {
       return i - start;
     }
   }, {
+    key: "_normalizeColor",
+    value: function _normalizeColor(color) {
+      var r = "0".concat((Math.round(color.x * 255) & 0xff).toString(16)).slice(-2);
+      var g = "0".concat((Math.round(color.y * 255) & 0xff).toString(16)).slice(-2);
+      var b = "0".concat((Math.round(color.z * 255) & 0xff).toString(16)).slice(-2);
+      return "#".concat(r).concat(g).concat(b);
+    }
+  }, {
     key: "_hash",
-    value: function _hash(char, font) {
-      return "".concat(font.family, "@").concat(font.size, "&").concat(char);
+    value: function _hash(char, font, color) {
+      var clr = this._renderer.supportColorComposition() ? '' : "@".concat(this._normalizeColor(color));
+      return "".concat(font.family, "@").concat(font.size).concat(clr, "&").concat(char);
     }
   }, {
     key: "_cacheGlyph",
-    value: function _cacheGlyph(char, font) {
-      if (updateByCanvas) {
-        var bitmap = this._getGlyphBitmap(char, font);
+    value: function _cacheGlyph(char, font, color) {
+      var bitmap = this._getGlyphBitmap(char, font, color);
 
-        return this.pushCanvas(this._hash(char, font), _1.FontCanvas.context, bitmap.x, bitmap.y, bitmap.w, bitmap.h);
-      } else {
-        var _bitmap = this._getGlyphBitmap(char, font);
-
-        return this.pushBitmap(this._hash(char, font), _bitmap);
+      return this.pushBitmap(this._hash(char, font, color), bitmap);
+    }
+  }, {
+    key: "getCharWidth",
+    value: function getCharWidth(char, font) {
+      if (!font) {
+        return 0;
       }
+
+      _1.FontCanvas.font = font;
+
+      var metric = _1.FontCanvas.context.measureText(char);
+
+      var w = metric.width;
+
+      if (w === 0) {
+        return 0;
+      }
+
+      if (typeof metric.actualBoundingBoxRight === 'number') {
+        w = Math.floor(Math.max(w, metric.actualBoundingBoxRight) + 0.8);
+      }
+
+      return w;
     }
   }, {
     key: "_getGlyphBitmap",
-    value: function _getGlyphBitmap(char, font) {
+    value: function _getGlyphBitmap(char, font, color) {
       if (!font) {
         return null;
       }
@@ -6328,30 +6355,15 @@ var GlyphManager = function (_$AtlasManager) {
       }
 
       var h = font.bottom - font.top + 1;
-
-      if (updateByCanvas) {
-        _1.FontCanvas.canvas.width = w;
-        _1.FontCanvas.canvas.height = h;
-        _1.FontCanvas.context.textBaseline = 'top';
-        _1.FontCanvas.context.fillStyle = '#ffffff';
-      }
+      _1.FontCanvas.context.fillStyle = this._renderer.supportColorComposition() ? '#fff' : this._normalizeColor(color);
 
       _1.FontCanvas.context.clearRect(0, 0, w + 2, h);
 
       _1.FontCanvas.context.fillText(char, 0, -font.top);
 
-      if (updateByCanvas) {
-        return {
-          x: 0,
-          y: 0,
-          w: w,
-          h: h
-        };
-      } else {
-        var bitmap = _1.FontCanvas.context.getImageData(0, 0, w, h);
+      var bitmap = _1.FontCanvas.context.getImageData(0, 0, w, h);
 
-        return bitmap;
-      }
+      return bitmap;
     }
   }]);
   return GlyphManager;
@@ -6379,11 +6391,15 @@ var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(/*! @babel/
 
 var _extends2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/extends */ "../node_modules/@babel/runtime/helpers/extends.js"));
 
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "../node_modules/@babel/runtime/helpers/defineProperty.js"));
+
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "../node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "../node_modules/@babel/runtime/helpers/createClass.js"));
 
 var _typeof2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/typeof */ "../node_modules/@babel/runtime/helpers/typeof.js"));
+
+var _deviceMouseEvents;
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e5) { throw _e5; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e6) { didErr = true; err = _e6; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
@@ -6508,7 +6524,7 @@ function tagname(name) {
 }
 
 exports.tagname = tagname;
-var deviceMouseEvents = [_1.GUIMouseEvent.NAME_MOUSEDOWN, _1.GUIMouseEvent.NAME_MOUSEUP, _1.GUIMouseEvent.NAME_MOUSEMOVE, _1.GUIMouseEvent.NAME_MOUSECLICK, _1.GUIMouseEvent.NAME_MOUSEDBLCLICK];
+var deviceMouseEvents = (_deviceMouseEvents = {}, (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSEDOWN, _1.GUIMouseEvent.NAME_MOUSEDOWN), (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSEUP, _1.GUIMouseEvent.NAME_MOUSEUP), (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSEMOVE, _1.GUIMouseEvent.NAME_MOUSEMOVE), (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSECLICK, _1.GUIMouseEvent.NAME_MOUSECLICK), (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK, _1.GUIMouseEvent.NAME_MOUSEDBLCLICK), _deviceMouseEvents);
 var deviceKeyEvents = [_1.GUIKeyEvent.NAME_KEYDOWN, _1.GUIKeyEvent.NAME_KEYUP, _1.GUIKeyEvent.NAME_KEYPRESS];
 
 var GUI = function () {
@@ -6586,163 +6602,156 @@ var GUI = function () {
       }
     });
 
-    var _iterator2 = _createForOfIteratorHelper(deviceMouseEvents),
-        _step2;
+    var _loop = function _loop(evt) {
+      _this2.addEventListener(evt, function (e) {
+        var _this3 = this;
 
-    try {
-      var _loop = function _loop() {
-        var evt = _step2.value;
+        var mouseEvent = e;
 
-        _this2.addEventListener(evt, function (e) {
-          var _this3 = this;
+        if (evt === _1.GUIMouseEvent.NAME_RENDERER_MOUSEMOVE) {
+          var hits = null;
 
-          var mouseEvent = e;
+          if (this._captureElement) {
+            var v = this._captureElement.toAbsolute({
+              x: 0,
+              y: 0
+            });
 
-          if (evt === _1.GUIMouseEvent.NAME_MOUSEMOVE) {
-            var hits = null;
+            hits = [{
+              element: this._captureElement,
+              x: mouseEvent.x - v.x,
+              y: mouseEvent.y - v.y
+            }];
+          } else {
+            hits = this.hitTest(mouseEvent.x, mouseEvent.y);
+          }
 
-            if (this._captureElement) {
-              var v = this._captureElement.toAbsolute({
+          if (hits.length === 0) {
+            this._renderer.setCursorStyle('default');
+          }
+
+          var _loop2 = function _loop2(i) {
+            var info = _this3._hoverElements[i];
+
+            if (!hits.find(function (hit) {
+              return hit.element === info.element;
+            })) {
+              var _p = info.element.toAbsolute({
                 x: 0,
                 y: 0
               });
 
-              hits = [{
-                element: this._captureElement,
-                x: mouseEvent.x - v.x,
-                y: mouseEvent.y - v.y
-              }];
-            } else {
-              hits = this.hitTest(mouseEvent.x, mouseEvent.y);
-            }
+              console.log("".concat(info.element.id, " mouseout"));
 
-            if (hits.length === 0) {
-              this._renderer.setCursorStyle('default');
-            }
+              info.element._onMouseOut(mouseEvent.x - _p.x, mouseEvent.y - _p.y);
 
-            var _loop2 = function _loop2(i) {
-              var info = _this3._hoverElements[i];
-
-              if (!hits.find(function (hit) {
-                return hit.element === info.element;
-              })) {
-                var _p = info.element.toAbsolute({
-                  x: 0,
-                  y: 0
-                });
-
-                info.element._onMouseOut(mouseEvent.x - _p.x, mouseEvent.y - _p.y);
-
-                if (info.element.enabled) {
-                  info.element.dispatchEvent(new _1.GUIMouseEvent(_1.GUIMouseEvent.NAME_MOUSEOUT, mouseEvent.x - _p.x, mouseEvent.y - _p.y, mouseEvent.button, mouseEvent.keymod));
-                }
-              }
-            };
-
-            for (var i = 0; i < this._hoverElements.length; i++) {
-              _loop2(i);
-            }
-
-            var _loop3 = function _loop3(_i) {
-              var info = hits[_i];
-
-              if (!_this3._hoverElements.find(function (hit) {
-                return hit.element === info.element;
-              })) {
-                info.element._onMouseIn(info.x, info.y);
-
-                if (info.element.enabled) {
-                  info.element.dispatchEvent(new _1.GUIMouseEvent(_1.GUIMouseEvent.NAME_MOUSEIN, info.x, info.y, mouseEvent.button, mouseEvent.keymod));
-                }
-              }
-            };
-
-            for (var _i = 0; _i < hits.length; _i++) {
-              _loop3(_i);
-            }
-
-            var lastHover = this._hoverElements.length > 0 ? this._hoverElements[0] : null;
-            var newHover = hits.length > 0 ? hits[0] : null;
-
-            if ((lastHover === null || lastHover === void 0 ? void 0 : lastHover.element) !== (newHover === null || newHover === void 0 ? void 0 : newHover.element)) {
-              if (lastHover) {
-                var p = lastHover.element.toAbsolute({
-                  x: 0,
-                  y: 0
-                });
-
-                lastHover.element._onMouseLeave(mouseEvent.x - p.x, mouseEvent.y - p.y);
-
-                if (lastHover.element.enabled) {
-                  lastHover.element.dispatchEvent(new _1.GUIMouseEvent(_1.GUIMouseEvent.NAME_MOUSELEAVE, mouseEvent.x - p.x, mouseEvent.y - p.y, mouseEvent.button, mouseEvent.keymod));
-                }
-              }
-
-              if (newHover) {
-                newHover.element._onMouseEnter(newHover.x, newHover.y);
-
-                if (newHover.element.enabled) {
-                  newHover.element.dispatchEvent(new _1.GUIMouseEvent(_1.GUIMouseEvent.NAME_MOUSEENTER, newHover.x, newHover.y, mouseEvent.button, mouseEvent.keymod));
-                }
+              if (info.element.enabled) {
+                info.element.dispatchEvent(new _1.GUIMouseEvent(_1.GUIMouseEvent.NAME_MOUSEOUT, mouseEvent.x - _p.x, mouseEvent.y - _p.y, mouseEvent.button, mouseEvent.keymod));
               }
             }
+          };
 
-            this._hoverElements = hits;
+          for (var i = 0; i < this._hoverElements.length; i++) {
+            _loop2(i);
           }
 
-          if (this._hoverElements.length > 0) {
-            if (mouseEvent.button === 1) {
-              if (evt === _1.GUIMouseEvent.NAME_MOUSEDOWN) {
-                this._hoverElements[0].element._onMouseDown(this._hoverElements[0].x, this._hoverElements[0].y);
+          var _loop3 = function _loop3(_i) {
+            var info = hits[_i];
 
-                this.setFocus(this._hoverElements[0].element.enabled ? this._hoverElements[0].element : null);
-              } else if (evt === _1.GUIMouseEvent.NAME_MOUSEUP) {
-                this._hoverElements[0].element._onMouseUp(this._hoverElements[0].x, this._hoverElements[0].y);
+            if (!_this3._hoverElements.find(function (hit) {
+              return hit.element === info.element;
+            })) {
+              console.log("".concat(info.element.id, " mousein"));
+
+              info.element._onMouseIn(info.x, info.y);
+
+              if (info.element.enabled) {
+                info.element.dispatchEvent(new _1.GUIMouseEvent(_1.GUIMouseEvent.NAME_MOUSEOVER, info.x, info.y, mouseEvent.button, mouseEvent.keymod));
+              }
+            }
+          };
+
+          for (var _i = 0; _i < hits.length; _i++) {
+            _loop3(_i);
+          }
+
+          var lastHover = this._hoverElements.length > 0 ? this._hoverElements[0] : null;
+          var newHover = hits.length > 0 ? hits[0] : null;
+
+          if ((lastHover === null || lastHover === void 0 ? void 0 : lastHover.element) !== (newHover === null || newHover === void 0 ? void 0 : newHover.element)) {
+            if (lastHover) {
+              var p = lastHover.element.toAbsolute({
+                x: 0,
+                y: 0
+              });
+
+              lastHover.element._onMouseLeave(mouseEvent.x - p.x, mouseEvent.y - p.y);
+
+              if (lastHover.element.enabled) {
+                lastHover.element.dispatchEvent(new _1.GUIMouseEvent(_1.GUIMouseEvent.NAME_MOUSELEAVE, mouseEvent.x - p.x, mouseEvent.y - p.y, mouseEvent.button, mouseEvent.keymod));
               }
             }
 
-            var _iterator5 = _createForOfIteratorHelper(this._hoverElements),
-                _step5;
+            if (newHover) {
+              newHover.element._onMouseEnter(newHover.x, newHover.y);
 
-            try {
-              for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-                var info = _step5.value;
-
-                if (!info.element.enabled) {
-                  continue;
-                }
-
-                var me = new _1.GUIMouseEvent(evt, info.x, info.y, mouseEvent.button, mouseEvent.keymod);
-                info.element.dispatchEvent(me);
-
-                if (me.cancelBubble) {
-                  break;
-                }
+              if (newHover.element.enabled) {
+                newHover.element.dispatchEvent(new _1.GUIMouseEvent(_1.GUIMouseEvent.NAME_MOUSEENTER, newHover.x, newHover.y, mouseEvent.button, mouseEvent.keymod));
               }
-            } catch (err) {
-              _iterator5.e(err);
-            } finally {
-              _iterator5.f();
             }
           }
-        });
-      };
 
-      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-        _loop();
-      }
-    } catch (err) {
-      _iterator2.e(err);
-    } finally {
-      _iterator2.f();
+          this._hoverElements = hits;
+        }
+
+        if (this._hoverElements.length > 0) {
+          if (mouseEvent.button === 1) {
+            if (evt === _1.GUIMouseEvent.NAME_RENDERER_MOUSEDOWN) {
+              this._hoverElements[0].element._onMouseDown(this._hoverElements[0].x, this._hoverElements[0].y);
+
+              this.setFocus(this._hoverElements[0].element.enabled ? this._hoverElements[0].element : null);
+            } else if (evt === _1.GUIMouseEvent.NAME_RENDERER_MOUSEUP) {
+              this._hoverElements[0].element._onMouseUp(this._hoverElements[0].x, this._hoverElements[0].y);
+            }
+          }
+
+          var _iterator4 = _createForOfIteratorHelper(this._hoverElements),
+              _step4;
+
+          try {
+            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+              var info = _step4.value;
+
+              if (!info.element.enabled) {
+                continue;
+              }
+
+              var me = new _1.GUIMouseEvent(deviceMouseEvents[evt], info.x, info.y, mouseEvent.button, mouseEvent.keymod);
+              info.element.dispatchEvent(me);
+
+              if (me.cancelBubble) {
+                break;
+              }
+            }
+          } catch (err) {
+            _iterator4.e(err);
+          } finally {
+            _iterator4.f();
+          }
+        }
+      });
+    };
+
+    for (var evt in deviceMouseEvents) {
+      _loop(evt);
     }
 
-    var _iterator3 = _createForOfIteratorHelper(deviceKeyEvents),
-        _step3;
+    var _iterator2 = _createForOfIteratorHelper(deviceKeyEvents),
+        _step2;
 
     try {
       var _loop4 = function _loop4() {
-        var evt = _step3.value;
+        var evt = _step2.value;
 
         _this2.addEventListener(evt, function (e) {
           var keyEvent = e;
@@ -6764,13 +6773,13 @@ var GUI = function () {
         });
       };
 
-      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
         _loop4();
       }
     } catch (err) {
-      _iterator3.e(err);
+      _iterator2.e(err);
     } finally {
-      _iterator3.f();
+      _iterator2.f();
     }
 
     var domChangeFunc = function domChangeFunc(e) {
@@ -6790,19 +6799,19 @@ var GUI = function () {
           var linkElements = el.tagName === 'link' ? [data.target] : [];
           linkElements = [].concat((0, _toConsumableArray2.default)(linkElements), (0, _toConsumableArray2.default)(el.querySelectorAll('link').values()));
 
-          var _iterator4 = _createForOfIteratorHelper(linkElements),
-              _step4;
+          var _iterator3 = _createForOfIteratorHelper(linkElements),
+              _step3;
 
           try {
-            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-              var _el = _step4.value;
+            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+              var _el = _step3.value;
 
               this._importLinkContent(_el);
             }
           } catch (err) {
-            _iterator4.e(err);
+            _iterator3.e(err);
           } finally {
-            _iterator4.f();
+            _iterator3.f();
           }
         }
       }
@@ -6810,6 +6819,9 @@ var GUI = function () {
 
     this.addEventListener(_1.DOMTreeEvent.NAME_INSERTED, domChangeFunc);
     this.addEventListener(_1.DOMTreeEvent.NAME_REMOVED, domChangeFunc);
+
+    this._renderer.injectEvents(this);
+
     this._document = new _1.RMLDocument(this);
 
     this._topLayout.appendChild(this._document._getLayout());
@@ -6894,21 +6906,21 @@ var GUI = function () {
         } else {
           var validElements = [];
 
-          var _iterator6 = _createForOfIteratorHelper(this._styleRefreshList),
-              _step6;
+          var _iterator5 = _createForOfIteratorHelper(this._styleRefreshList),
+              _step5;
 
           try {
-            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-              var e = _step6.value;
+            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+              var e = _step5.value;
 
               if (e.nodeType === _1.RMLNode.ELEMENT_NODE && e.tagName !== 'style' && e._isSucceedingOf(this._document)) {
                 validElements.push(e);
               }
             }
           } catch (err) {
-            _iterator6.e(err);
+            _iterator5.e(err);
           } finally {
-            _iterator6.f();
+            _iterator5.f();
           }
 
           this._styleRefreshList = validElements;
@@ -6923,26 +6935,26 @@ var GUI = function () {
             var processedElements = new Set();
             var ruleList = (0, _toConsumableArray2.default)(_this4._ruleListImported);
 
-            var _iterator7 = _createForOfIteratorHelper(styleElements.values()),
-                _step7;
+            var _iterator6 = _createForOfIteratorHelper(styleElements.values()),
+                _step6;
 
             try {
-              for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-                var el = _step7.value;
+              for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+                var el = _step6.value;
 
-                var _iterator13 = _createForOfIteratorHelper(el.definitions),
-                    _step13;
+                var _iterator12 = _createForOfIteratorHelper(el.definitions),
+                    _step12;
 
                 try {
-                  for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
-                    var def = _step13.value;
+                  for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
+                    var def = _step12.value;
 
-                    var _iterator14 = _createForOfIteratorHelper(def.selector.rules()),
-                        _step14;
+                    var _iterator13 = _createForOfIteratorHelper(def.selector.rules()),
+                        _step13;
 
                     try {
-                      for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
-                        var rule = _step14.value;
+                      for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
+                        var rule = _step13.value;
                         ruleList.push({
                           rule: rule,
                           stylesheet: def.stylesheet,
@@ -6950,21 +6962,21 @@ var GUI = function () {
                         });
                       }
                     } catch (err) {
-                      _iterator14.e(err);
+                      _iterator13.e(err);
                     } finally {
-                      _iterator14.f();
+                      _iterator13.f();
                     }
                   }
                 } catch (err) {
-                  _iterator13.e(err);
+                  _iterator12.e(err);
                 } finally {
-                  _iterator13.f();
+                  _iterator12.f();
                 }
               }
             } catch (err) {
-              _iterator7.e(err);
+              _iterator6.e(err);
             } finally {
-              _iterator7.f();
+              _iterator6.f();
             }
 
             var allElements = null;
@@ -6983,12 +6995,12 @@ var GUI = function () {
                 return a.rule.specificity - b.rule.specificity;
               });
 
-              var _iterator8 = _createForOfIteratorHelper(ruleList),
-                  _step8;
+              var _iterator7 = _createForOfIteratorHelper(ruleList),
+                  _step7;
 
               try {
                 var _loop5 = function _loop5() {
-                  var rule = _step8.value;
+                  var rule = _step7.value;
                   rule.rule.resolve(_this4._styleRefreshList, true, true, function (node, type) {
                     var pseudoTypes = pseudoMap.get(node) || new Map();
                     pseudoMap.set(node, pseudoTypes);
@@ -7000,12 +7012,12 @@ var GUI = function () {
                     });
                   });
 
-                  var _iterator9 = _createForOfIteratorHelper(rule.rule.targets),
-                      _step9;
+                  var _iterator8 = _createForOfIteratorHelper(rule.rule.targets),
+                      _step8;
 
                   try {
-                    for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-                      var _e2 = _step9.value;
+                    for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+                      var _e2 = _step8.value;
 
                       if (_e2.nodeType !== _1.RMLNode.DOCUMENT_NODE) {
                         if (!processedElements.has(_e2)) {
@@ -7020,38 +7032,38 @@ var GUI = function () {
                       _e2._updatePseudoElementStyles(pseudoMap.get(_e2));
                     }
                   } catch (err) {
-                    _iterator9.e(err);
+                    _iterator8.e(err);
                   } finally {
-                    _iterator9.f();
+                    _iterator8.f();
                   }
 
                   if (!_this4._styleFullRefresh) {
-                    var _iterator10 = _createForOfIteratorHelper(pseudoMap),
-                        _step10;
+                    var _iterator9 = _createForOfIteratorHelper(pseudoMap),
+                        _step9;
 
                     try {
-                      for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
-                        var _e = _step10.value;
+                      for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+                        var _e = _step9.value;
 
                         _e[0]._updatePseudoElementStyles(_e[1]);
                       }
                     } catch (err) {
-                      _iterator10.e(err);
+                      _iterator9.e(err);
                     } finally {
-                      _iterator10.f();
+                      _iterator9.f();
                     }
 
                     pseudoMap.clear();
                   }
                 };
 
-                for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+                for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
                   _loop5();
                 }
               } catch (err) {
-                _iterator8.e(err);
+                _iterator7.e(err);
               } finally {
-                _iterator8.f();
+                _iterator7.f();
               }
 
               processedElements.forEach(function (e) {
@@ -7060,12 +7072,12 @@ var GUI = function () {
             }
 
             if (_this4._styleFullRefresh) {
-              var _iterator11 = _createForOfIteratorHelper(allElements),
-                  _step11;
+              var _iterator10 = _createForOfIteratorHelper(allElements),
+                  _step10;
 
               try {
-                for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
-                  var _e3 = _step11.value;
+                for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+                  var _e3 = _step10.value;
 
                   if (!processedElements.has(_e3)) {
                     _e3._resetStyle();
@@ -7076,17 +7088,17 @@ var GUI = function () {
                   _e3._updatePseudoElementStyles(pseudoMap.get(_e3));
                 }
               } catch (err) {
-                _iterator11.e(err);
+                _iterator10.e(err);
               } finally {
-                _iterator11.f();
+                _iterator10.f();
               }
             } else {
-              var _iterator12 = _createForOfIteratorHelper(_this4._styleRefreshList),
-                  _step12;
+              var _iterator11 = _createForOfIteratorHelper(_this4._styleRefreshList),
+                  _step11;
 
               try {
-                for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
-                  var _e4 = _step12.value;
+                for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
+                  var _e4 = _step11.value;
 
                   if (!processedElements.has(_e4)) {
                     _e4._resetStyle();
@@ -7095,9 +7107,9 @@ var GUI = function () {
                   }
                 }
               } catch (err) {
-                _iterator12.e(err);
+                _iterator11.e(err);
               } finally {
-                _iterator12.f();
+                _iterator11.f();
               }
             }
 
@@ -7174,7 +7186,7 @@ var GUI = function () {
     key: "deserializeFromXML",
     value: function deserializeFromXML(xml) {
       return __awaiter(this, void 0, void 0, _regenerator.default.mark(function _callee() {
-        var parser, dom, docElement, linkElements, promises, _iterator15, _step15, link;
+        var parser, dom, docElement, linkElements, promises, _iterator14, _step14, link;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -7203,17 +7215,17 @@ var GUI = function () {
 
                 linkElements = this._document.querySelectorAll('link');
                 promises = [];
-                _iterator15 = _createForOfIteratorHelper(linkElements.values());
+                _iterator14 = _createForOfIteratorHelper(linkElements.values());
 
                 try {
-                  for (_iterator15.s(); !(_step15 = _iterator15.n()).done;) {
-                    link = _step15.value;
+                  for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
+                    link = _step14.value;
                     promises.push(this._importLinkContent(link));
                   }
                 } catch (err) {
-                  _iterator15.e(err);
+                  _iterator14.e(err);
                 } finally {
-                  _iterator15.f();
+                  _iterator14.f();
                 }
 
                 _context.next = 14;
@@ -7297,8 +7309,13 @@ var GUI = function () {
     }
   }, {
     key: "_getGlyphInfo",
-    value: function _getGlyphInfo(char, font) {
-      return this._glyphManager.getGlyphInfo(char, font);
+    value: function _getGlyphInfo(char, font, color) {
+      return this._glyphManager.getGlyphInfo(char, font, color);
+    }
+  }, {
+    key: "_getCharWidth",
+    value: function _getCharWidth(char, font) {
+      return this._glyphManager.getCharWidth(char, font);
     }
   }, {
     key: "_measureStringWidth",
@@ -7332,12 +7349,12 @@ var GUI = function () {
         return root;
       }
 
-      var _iterator16 = _createForOfIteratorHelper(root.childNodes.values()),
-          _step16;
+      var _iterator15 = _createForOfIteratorHelper(root.childNodes.values()),
+          _step15;
 
       try {
-        for (_iterator16.s(); !(_step16 = _iterator16.n()).done;) {
-          var child = _step16.value;
+        for (_iterator15.s(); !(_step15 = _iterator15.n()).done;) {
+          var child = _step15.value;
 
           var e = this._getElementById(child, id);
 
@@ -7346,9 +7363,9 @@ var GUI = function () {
           }
         }
       } catch (err) {
-        _iterator16.e(err);
+        _iterator15.e(err);
       } finally {
-        _iterator16.f();
+        _iterator15.f();
       }
 
       return null;
@@ -7360,19 +7377,19 @@ var GUI = function () {
         results.push(root);
       }
 
-      var _iterator17 = _createForOfIteratorHelper(root.childNodes.values()),
-          _step17;
+      var _iterator16 = _createForOfIteratorHelper(root.childNodes.values()),
+          _step16;
 
       try {
-        for (_iterator17.s(); !(_step17 = _iterator17.n()).done;) {
-          var child = _step17.value;
+        for (_iterator16.s(); !(_step16 = _iterator16.n()).done;) {
+          var child = _step16.value;
 
           this._getElementsByTagName(child, tagname, results);
         }
       } catch (err) {
-        _iterator17.e(err);
+        _iterator16.e(err);
       } finally {
-        _iterator17.f();
+        _iterator16.f();
       }
 
       return null;
@@ -7384,12 +7401,12 @@ var GUI = function () {
         var matched = true;
         var el = root;
 
-        var _iterator18 = _createForOfIteratorHelper(classnames),
-            _step18;
+        var _iterator17 = _createForOfIteratorHelper(classnames),
+            _step17;
 
         try {
-          for (_iterator18.s(); !(_step18 = _iterator18.n()).done;) {
-            var classname = _step18.value;
+          for (_iterator17.s(); !(_step17 = _iterator17.n()).done;) {
+            var classname = _step17.value;
 
             if (!el.classList.contains(classname)) {
               matched = false;
@@ -7397,9 +7414,9 @@ var GUI = function () {
             }
           }
         } catch (err) {
-          _iterator18.e(err);
+          _iterator17.e(err);
         } finally {
-          _iterator18.f();
+          _iterator17.f();
         }
 
         if (matched) {
@@ -7407,19 +7424,19 @@ var GUI = function () {
         }
       }
 
-      var _iterator19 = _createForOfIteratorHelper(root.childNodes.values()),
-          _step19;
+      var _iterator18 = _createForOfIteratorHelper(root.childNodes.values()),
+          _step18;
 
       try {
-        for (_iterator19.s(); !(_step19 = _iterator19.n()).done;) {
-          var child = _step19.value;
+        for (_iterator18.s(); !(_step18 = _iterator18.n()).done;) {
+          var child = _step18.value;
 
           this._getElementsByClassName(child, classnames, results);
         }
       } catch (err) {
-        _iterator19.e(err);
+        _iterator18.e(err);
       } finally {
-        _iterator19.f();
+        _iterator18.f();
       }
 
       return null;
@@ -7435,7 +7452,7 @@ var GUI = function () {
     key: "_importRuleListFromURL",
     value: function _importRuleListFromURL(url) {
       return __awaiter(this, void 0, void 0, _regenerator.default.mark(function _callee3() {
-        var content, entries, _iterator20, _step20, def, _iterator21, _step21, rule;
+        var content, entries, _iterator19, _step19, def, _iterator20, _step20, rule;
 
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
@@ -7449,16 +7466,16 @@ var GUI = function () {
 
                 if (content) {
                   entries = this._parseStyleContent(content);
-                  _iterator20 = _createForOfIteratorHelper(entries);
+                  _iterator19 = _createForOfIteratorHelper(entries);
 
                   try {
-                    for (_iterator20.s(); !(_step20 = _iterator20.n()).done;) {
-                      def = _step20.value;
-                      _iterator21 = _createForOfIteratorHelper(def.selector.rules());
+                    for (_iterator19.s(); !(_step19 = _iterator19.n()).done;) {
+                      def = _step19.value;
+                      _iterator20 = _createForOfIteratorHelper(def.selector.rules());
 
                       try {
-                        for (_iterator21.s(); !(_step21 = _iterator21.n()).done;) {
-                          rule = _step21.value;
+                        for (_iterator20.s(); !(_step20 = _iterator20.n()).done;) {
+                          rule = _step20.value;
 
                           this._ruleListImported.push({
                             rule: rule,
@@ -7467,15 +7484,15 @@ var GUI = function () {
                           });
                         }
                       } catch (err) {
-                        _iterator21.e(err);
+                        _iterator20.e(err);
                       } finally {
-                        _iterator21.f();
+                        _iterator20.f();
                       }
                     }
                   } catch (err) {
-                    _iterator20.e(err);
+                    _iterator19.e(err);
                   } finally {
-                    _iterator20.f();
+                    _iterator19.f();
                   }
                 }
 
@@ -7532,13 +7549,27 @@ var GUI = function () {
     value: function _deserializeElement(el) {
       var element = this.createElement(el.tagName.toLowerCase());
 
-      var _iterator22 = _createForOfIteratorHelper(el.attributes),
+      var _iterator21 = _createForOfIteratorHelper(el.attributes),
+          _step21;
+
+      try {
+        for (_iterator21.s(); !(_step21 = _iterator21.n()).done;) {
+          var attr = _step21.value;
+          element.setAttribute(attr.name, attr.value);
+        }
+      } catch (err) {
+        _iterator21.e(err);
+      } finally {
+        _iterator21.f();
+      }
+
+      var _iterator22 = _createForOfIteratorHelper(el.classList),
           _step22;
 
       try {
         for (_iterator22.s(); !(_step22 = _iterator22.n()).done;) {
-          var attr = _step22.value;
-          element.setAttribute(attr.name, attr.value);
+          var className = _step22.value;
+          element.classList.add(className);
         }
       } catch (err) {
         _iterator22.e(err);
@@ -7546,26 +7577,12 @@ var GUI = function () {
         _iterator22.f();
       }
 
-      var _iterator23 = _createForOfIteratorHelper(el.classList),
+      var _iterator23 = _createForOfIteratorHelper(el.childNodes),
           _step23;
 
       try {
         for (_iterator23.s(); !(_step23 = _iterator23.n()).done;) {
-          var className = _step23.value;
-          element.classList.add(className);
-        }
-      } catch (err) {
-        _iterator23.e(err);
-      } finally {
-        _iterator23.f();
-      }
-
-      var _iterator24 = _createForOfIteratorHelper(el.childNodes),
-          _step24;
-
-      try {
-        for (_iterator24.s(); !(_step24 = _iterator24.n()).done;) {
-          var child = _step24.value;
+          var child = _step23.value;
 
           if (child.nodeType === Node.TEXT_NODE) {
             var text = child.textContent.trim().replace(/\s+/, ' ');
@@ -7578,9 +7595,9 @@ var GUI = function () {
           }
         }
       } catch (err) {
-        _iterator24.e(err);
+        _iterator23.e(err);
       } finally {
-        _iterator24.f();
+        _iterator23.f();
       }
 
       return element;
@@ -7635,12 +7652,12 @@ var GUI = function () {
   }, {
     key: "_buildDOM",
     value: function _buildDOM(root, doc, parent) {
-      var _iterator25 = _createForOfIteratorHelper(root.childNodes.values()),
-          _step25;
+      var _iterator24 = _createForOfIteratorHelper(root.childNodes.values()),
+          _step24;
 
       try {
-        for (_iterator25.s(); !(_step25 = _iterator25.n()).done;) {
-          var child = _step25.value;
+        for (_iterator24.s(); !(_step24 = _iterator24.n()).done;) {
+          var child = _step24.value;
 
           if (!child._isInternal()) {
             var childElement = this._createDOMElement(child, doc, null);
@@ -7653,9 +7670,9 @@ var GUI = function () {
           }
         }
       } catch (err) {
-        _iterator25.e(err);
+        _iterator24.e(err);
       } finally {
-        _iterator25.f();
+        _iterator24.f();
       }
     }
   }, {
@@ -7670,18 +7687,18 @@ var GUI = function () {
           out.className = el.className;
         }
 
-        var _iterator26 = _createForOfIteratorHelper(el.attributes),
-            _step26;
+        var _iterator25 = _createForOfIteratorHelper(el.attributes),
+            _step25;
 
         try {
-          for (_iterator26.s(); !(_step26 = _iterator26.n()).done;) {
-            var k = _step26.value;
+          for (_iterator25.s(); !(_step25 = _iterator25.n()).done;) {
+            var k = _step25.value;
             out.setAttribute(k.name, k.value);
           }
         } catch (err) {
-          _iterator26.e(err);
+          _iterator25.e(err);
         } finally {
-          _iterator26.f();
+          _iterator25.f();
         }
       }
 
@@ -12938,7 +12955,125 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.CanvasRenderer = void 0;
+exports.CanvasRenderer = exports.Key = exports.KeyMod = exports.MouseButton = void 0;
+
+var _1 = __webpack_require__(/*! . */ "./index.ts");
+
+var MouseButton;
+
+(function (MouseButton) {
+  MouseButton[MouseButton["LEFT"] = 1] = "LEFT";
+  MouseButton[MouseButton["RIGHT"] = 2] = "RIGHT";
+  MouseButton[MouseButton["MIDDLE"] = 4] = "MIDDLE";
+})(MouseButton = exports.MouseButton || (exports.MouseButton = {}));
+
+var KeyMod;
+
+(function (KeyMod) {
+  KeyMod[KeyMod["SHIFT"] = 1] = "SHIFT";
+  KeyMod[KeyMod["ALT"] = 2] = "ALT";
+  KeyMod[KeyMod["CTRL"] = 4] = "CTRL";
+  KeyMod[KeyMod["META"] = 8] = "META";
+})(KeyMod = exports.KeyMod || (exports.KeyMod = {}));
+
+var Key;
+
+(function (Key) {
+  Key[Key["ESCAPE"] = 27] = "ESCAPE";
+  Key[Key["F1"] = 112] = "F1";
+  Key[Key["F2"] = 113] = "F2";
+  Key[Key["F3"] = 114] = "F3";
+  Key[Key["F4"] = 115] = "F4";
+  Key[Key["F5"] = 116] = "F5";
+  Key[Key["F6"] = 117] = "F6";
+  Key[Key["F7"] = 118] = "F7";
+  Key[Key["F8"] = 119] = "F8";
+  Key[Key["F9"] = 120] = "F9";
+  Key[Key["F10"] = 121] = "F10";
+  Key[Key["F11"] = 122] = "F11";
+  Key[Key["F12"] = 123] = "F12";
+  Key[Key["F13"] = 124] = "F13";
+  Key[Key["F14"] = 125] = "F14";
+  Key[Key["F15"] = 126] = "F15";
+  Key[Key["F16"] = 127] = "F16";
+  Key[Key["F17"] = 128] = "F17";
+  Key[Key["F18"] = 129] = "F18";
+  Key[Key["F19"] = 130] = "F19";
+  Key[Key["BACK_QUOTE"] = 192] = "BACK_QUOTE";
+  Key[Key["DIGIT_0"] = 48] = "DIGIT_0";
+  Key[Key["DIGIT_1"] = 49] = "DIGIT_1";
+  Key[Key["DIGIT_2"] = 50] = "DIGIT_2";
+  Key[Key["DIGIT_3"] = 51] = "DIGIT_3";
+  Key[Key["DIGIT_4"] = 52] = "DIGIT_4";
+  Key[Key["DIGIT_5"] = 53] = "DIGIT_5";
+  Key[Key["DIGIT_6"] = 54] = "DIGIT_6";
+  Key[Key["DIGIT_7"] = 55] = "DIGIT_7";
+  Key[Key["DIGIT_8"] = 56] = "DIGIT_8";
+  Key[Key["DIGIT_9"] = 57] = "DIGIT_9";
+  Key[Key["MINUS"] = 189] = "MINUS";
+  Key[Key["EQUAL"] = 187] = "EQUAL";
+  Key[Key["BACK_SPACE"] = 8] = "BACK_SPACE";
+  Key[Key["TAB"] = 9] = "TAB";
+  Key[Key["CAPSLOCK"] = 20] = "CAPSLOCK";
+  Key[Key["A"] = 65] = "A";
+  Key[Key["B"] = 66] = "B";
+  Key[Key["C"] = 67] = "C";
+  Key[Key["D"] = 68] = "D";
+  Key[Key["E"] = 69] = "E";
+  Key[Key["F"] = 70] = "F";
+  Key[Key["G"] = 71] = "G";
+  Key[Key["H"] = 72] = "H";
+  Key[Key["I"] = 73] = "I";
+  Key[Key["J"] = 74] = "J";
+  Key[Key["K"] = 75] = "K";
+  Key[Key["L"] = 76] = "L";
+  Key[Key["M"] = 77] = "M";
+  Key[Key["N"] = 78] = "N";
+  Key[Key["O"] = 79] = "O";
+  Key[Key["P"] = 80] = "P";
+  Key[Key["Q"] = 81] = "Q";
+  Key[Key["R"] = 82] = "R";
+  Key[Key["S"] = 83] = "S";
+  Key[Key["T"] = 84] = "T";
+  Key[Key["U"] = 85] = "U";
+  Key[Key["V"] = 86] = "V";
+  Key[Key["W"] = 87] = "W";
+  Key[Key["X"] = 88] = "X";
+  Key[Key["Y"] = 89] = "Y";
+  Key[Key["Z"] = 90] = "Z";
+  Key[Key["LEFT_BRACKET"] = 219] = "LEFT_BRACKET";
+  Key[Key["RIGHT_BRACKET"] = 221] = "RIGHT_BRACKET";
+  Key[Key["BACK_SLASH"] = 220] = "BACK_SLASH";
+  Key[Key["ENTER"] = 13] = "ENTER";
+  Key[Key["QUOTE"] = 222] = "QUOTE";
+  Key[Key["SEMICOLON"] = 186] = "SEMICOLON";
+  Key[Key["COMMA"] = 188] = "COMMA";
+  Key[Key["PERIOD"] = 190] = "PERIOD";
+  Key[Key["SLASH"] = 191] = "SLASH";
+  Key[Key["SHIFT"] = 16] = "SHIFT";
+  Key[Key["CONTROL"] = 17] = "CONTROL";
+  Key[Key["ALT"] = 18] = "ALT";
+  Key[Key["META"] = 91] = "META";
+  Key[Key["SPACE"] = 32] = "SPACE";
+  Key[Key["PAGE_UP"] = 33] = "PAGE_UP";
+  Key[Key["PAGE_DOWN"] = 34] = "PAGE_DOWN";
+  Key[Key["END"] = 35] = "END";
+  Key[Key["HOME"] = 36] = "HOME";
+  Key[Key["DELETE"] = 46] = "DELETE";
+  Key[Key["LEFT"] = 37] = "LEFT";
+  Key[Key["UP"] = 38] = "UP";
+  Key[Key["RIGHT"] = 39] = "RIGHT";
+  Key[Key["DOWN"] = 40] = "DOWN";
+  Key[Key["NUMLOCK"] = 12] = "NUMLOCK";
+  Key[Key["NUMPAD_EQUAL"] = 187] = "NUMPAD_EQUAL";
+  Key[Key["NUMPAD_DIV"] = 111] = "NUMPAD_DIV";
+  Key[Key["NUMPAD_MUL"] = 106] = "NUMPAD_MUL";
+  Key[Key["NUMPAD_ADD"] = 107] = "NUMPAD_ADD";
+  Key[Key["NUMPAD_SUB"] = 108] = "NUMPAD_SUB";
+  Key[Key["NUMPAD_DECIMAL"] = 110] = "NUMPAD_DECIMAL";
+})(Key = exports.Key || (exports.Key = {}));
+
+var buttonMap = [MouseButton.LEFT, MouseButton.MIDDLE, MouseButton.RIGHT];
 
 var CanvasRenderer = function () {
   function CanvasRenderer(cvs) {
@@ -12975,6 +13110,11 @@ var CanvasRenderer = function () {
     key: "getDrawingBufferHeight",
     value: function getDrawingBufferHeight() {
       return this._canvas.height;
+    }
+  }, {
+    key: "supportColorComposition",
+    value: function supportColorComposition() {
+      return false;
     }
   }, {
     key: "createTexture",
@@ -13086,11 +13226,55 @@ var CanvasRenderer = function () {
       }
     }
   }, {
+    key: "injectEvents",
+    value: function injectEvents(gui) {
+      var _this = this;
+
+      var mouseEventNames = ['mousedown', 'mouseup', 'mousemove', 'click', 'dblclick'];
+      var rendererEventNames = [_1.GUIMouseEvent.NAME_RENDERER_MOUSEDOWN, _1.GUIMouseEvent.NAME_RENDERER_MOUSEUP, _1.GUIMouseEvent.NAME_RENDERER_MOUSEMOVE, _1.GUIMouseEvent.NAME_RENDERER_MOUSECLICK, _1.GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK];
+
+      var _loop = function _loop(i) {
+        _this._canvas.addEventListener(mouseEventNames[i], function (evt) {
+          gui.dispatchEvent(_this._createMouseEvent(rendererEventNames[i], evt));
+        });
+      };
+
+      for (var i = 0; i < mouseEventNames.length; i++) {
+        _loop(i);
+      }
+    }
+  }, {
     key: "beginRender",
     value: function beginRender() {}
   }, {
     key: "endRender",
     value: function endRender() {}
+  }, {
+    key: "_createMouseEvent",
+    value: function _createMouseEvent(type, src) {
+      var x = src.offsetX;
+      var y = src.offsetY;
+      var button = buttonMap[src.button];
+      var keymod = 0;
+
+      if (src.shiftKey) {
+        keymod |= KeyMod.SHIFT;
+      }
+
+      if (src.altKey) {
+        keymod |= KeyMod.ALT;
+      }
+
+      if (src.ctrlKey) {
+        keymod |= KeyMod.CTRL;
+      }
+
+      if (src.metaKey) {
+        keymod |= KeyMod.META;
+      }
+
+      return new _1.GUIMouseEvent(type, x, y, button, keymod);
+    }
   }]);
   return CanvasRenderer;
 }();

@@ -1,6 +1,11 @@
 import { RMLNode, RMLPrimitiveBatchList, Event } from '.';
 
 export class GUIMouseEvent extends Event {
+    static readonly NAME_RENDERER_MOUSEDOWN = 'renderermousedown';
+    static readonly NAME_RENDERER_MOUSEUP = 'renderermouseup';
+    static readonly NAME_RENDERER_MOUSEMOVE = 'rendermousemove';
+    static readonly NAME_RENDERER_MOUSECLICK = 'rendererclick';
+    static readonly NAME_RENDERER_MOUSEDBLCLICK = 'rendererdblclick';
     static readonly NAME_MOUSEDOWN = 'mousedown';
     static readonly NAME_MOUSEUP = 'mouseup';
     static readonly NAME_MOUSEMOVE = 'mousemove';
@@ -8,7 +13,7 @@ export class GUIMouseEvent extends Event {
     static readonly NAME_MOUSEDBLCLICK = 'dblclick';
     static readonly NAME_MOUSEENTER = 'mouseenter';
     static readonly NAME_MOUSELEAVE = 'mouseleave';
-    static readonly NAME_MOUSEIN = 'mousein';
+    static readonly NAME_MOUSEOVER = 'mouseover';
     static readonly NAME_MOUSEOUT = 'mouseout';
     x: number;
     y: number;

@@ -2,9 +2,21 @@
 
 import { CanvasRenderer, GUI } from 'flui';
 
-const renderer = new CanvasRenderer (document.getElementById ('canvas') as HTMLCanvasElement);
+const canvas = document.getElementById ('canvas') as HTMLCanvasElement;
+const renderer = new CanvasRenderer (canvas);
 const gui = new GUI (renderer);
 gui.deserializeFromXML (document.querySelector('#main-ui').innerHTML).then(()=>{
+    const bar3 = gui.document.querySelector ('#bar3');
+    const btnNewText = gui.document.querySelector ('#new-text');
+    btnNewText.addEventListener ('click', function(){
+        bar3.prepend ('new text');
+    });     
+    const btnRemoveText = gui.document.querySelector ('#remove-text');
+    btnRemoveText.addEventListener ('click', function(){
+        if (bar3.firstChild) {
+            bar3.removeChild (bar3.firstChild);
+        }
+    });
     requestAnimationFrame (function renderGUI () {
         gui.render ();
         requestAnimationFrame (renderGUI);    

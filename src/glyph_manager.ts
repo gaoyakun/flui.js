@@ -1,4 +1,4 @@
-import { Renderer, Texture, Font, FontCanvas, AtlasManager } from '.';
+import { Renderer, Texture, Vec4, Font, FontCanvas, AtlasManager } from '.';
 
 export interface IGlyphInfo {
     atlasIndex: number;
@@ -10,8 +10,6 @@ export interface IGlyphInfo {
     vMax: number;
 }
 
-const updateByCanvas: boolean = false;
-
 export class GlyphManager extends AtlasManager<GlyphManager> {
     constructor (renderer: Renderer, cacheWidth?: number, cacheHeight?: number, cachePadding?: number) {
         super (renderer, Math.max (cacheWidth, 2), cacheHeight, cachePadding, true);
@@ -19,13 +17,13 @@ export class GlyphManager extends AtlasManager<GlyphManager> {
     getGlyphTexture (index: number): Texture {
         return this.getAtlasTexture (index);
     }
-    getGlyphInfo (char: string, font: Font): IGlyphInfo {
-        if (!char || !font) {
+    getGlyphInfo (char: string, font: Font, color: Vec4): IGlyphInfo {
+        if (!char || !font || !color) {
             return null;
         }
-        let glyphInfo = this.getAtlasInfo(this._hash(char, font));
+        let glyphInfo = this.getAtlasInfo(this._hash(char, font, color));
         if (!glyphInfo) {
-            glyphInfo = this._cacheGlyph (char, font);
+            glyphInfo = this._cacheGlyph (char, font, color);
         }
         return glyphInfo;
     }
@@ -33,8 +31,8 @@ export class GlyphManager extends AtlasManager<GlyphManager> {
         let w = 0;
         for (let i = 0; i < str.length; i++) {
             const margin = i === 0 ? 0 : charMargin;
-            const glyphInfo = this.getGlyphInfo (str[i], font);
-            w += margin + (glyphInfo ? glyphInfo.width : 0);
+            const width = this.getCharWidth (str[i], font);
+            w += margin + width;
         }
         return w;
     }
@@ -43,8 +41,8 @@ export class GlyphManager extends AtlasManager<GlyphManager> {
         let i = start;
         for (; i < str.length; i++) {
             const margin = i === start ? 0 : charMargin;
-            const glyphInfo = this.getGlyphInfo (str[i], font);
-            const charWidth = margin + (glyphInfo ? glyphInfo.width : 0);
+            const width = this.getCharWidth (str[i], font);
+            const charWidth = margin + width;
             sum += charWidth;
             if (sum > width) {
                 break;
@@ -52,17 +50,19 @@ export class GlyphManager extends AtlasManager<GlyphManager> {
         }
         return i - start;
     }
-    private _hash (char: string, font: Font) {
-        return `${font.family}@${font.size}&${char}`;
+    private _normalizeColor (color: Vec4): string {
+        const r = `0${(Math.round(color.x * 255) & 0xff).toString(16)}`.slice(-2);
+        const g = `0${(Math.round(color.y * 255) & 0xff).toString(16)}`.slice(-2);
+        const b = `0${(Math.round(color.z * 255) & 0xff).toString(16)}`.slice(-2);
+        return `#${r}${g}${b}`;
     }
-    private _cacheGlyph (char: string, font: Font): IGlyphInfo {
-        if (updateByCanvas) {
-            const bitmap = this._getGlyphBitmap (char, font) as {x:number,y:number,w:number,h:number };
-            return this.pushCanvas (this._hash(char, font), FontCanvas.context, bitmap.x, bitmap.y, bitmap.w, bitmap.h);
-        } else {
-            const bitmap = this._getGlyphBitmap (char, font) as ImageData;
-            return this.pushBitmap (this._hash(char, font), bitmap);
-        }
+    private _hash (char: string, font: Font, color: Vec4) {
+        const clr = this._renderer.supportColorComposition() ? '' : `@${this._normalizeColor(color)}`;
+        return `${font.family}@${font.size}${clr}&${char}`;
+    }
+    private _cacheGlyph (char: string, font: Font, color: Vec4): IGlyphInfo {
+        const bitmap = this._getGlyphBitmap (char, font, color) as ImageData;
+        return this.pushBitmap (this._hash(char, font, color), bitmap);
         /*
         if (bitmap) {
             const rc = this._packer.add (bitmap.width, bitmap.height, null);
@@ -84,7 +84,22 @@ export class GlyphManager extends AtlasManager<GlyphManager> {
         return null;
         */
     }
-    private _getGlyphBitmap (char: string, font: Font): ImageData|{x:number,y:number,w:number,h:number} {
+    getCharWidth (char: string, font: Font): number {
+        if (!font) {
+            return 0;
+        }
+        FontCanvas.font = font;
+        const metric = FontCanvas.context.measureText (char);
+        let w = metric.width;
+        if (w === 0) {
+            return 0;
+        }
+        if (typeof metric.actualBoundingBoxRight === 'number') {
+            w = Math.floor(Math.max(w, metric.actualBoundingBoxRight) + 0.8);
+        }
+        return w;
+    }
+    private _getGlyphBitmap (char: string, font: Font, color: Vec4): ImageData|{x:number,y:number,w:number,h:number} {
         if (!font) {
             return null;
         }
@@ -98,19 +113,10 @@ export class GlyphManager extends AtlasManager<GlyphManager> {
             w = Math.floor(Math.max(w, metric.actualBoundingBoxRight) + 0.8);
         }
         let h = font.bottom - font.top + 1;
-        if (updateByCanvas) {
-            FontCanvas.canvas.width = w;
-            FontCanvas.canvas.height = h;
-            FontCanvas.context.textBaseline = 'top';
-            FontCanvas.context.fillStyle = '#ffffff';
-        }
+        FontCanvas.context.fillStyle = this._renderer.supportColorComposition() ? '#fff' : this._normalizeColor (color);
         FontCanvas.context.clearRect (0, 0, w + 2, h);
         FontCanvas.context.fillText (char, 0, -font.top);
-        if (updateByCanvas) {
-            return { x: 0, y: 0, w: w, h: h };
-        } else {
-            const bitmap = FontCanvas.context.getImageData(0, 0, w, h);
-            return bitmap;
-        }
+        const bitmap = FontCanvas.context.getImageData(0, 0, w, h);
+        return bitmap;
     }
 }

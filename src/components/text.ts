@@ -114,14 +114,12 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
             c += lines[i].length;
         }
         for (let i = 0; i < lines[l].length; i++) {
-            const glyph = this._uiscene._getGlyphInfo (lines[l][i], font);
-            if (glyph) {
-                if (px <= t + (glyph.width >> 1)) {
-                    break;
-                }
-                t += glyph.width + charMargin;
-                c++;
+            const width = this._uiscene._getCharWidth (lines[l][i], font);
+            if (px <= t + (width >> 1)) {
+                break;
             }
+            t += width + charMargin;
+            c++;
         }
         return { line: l, pos: c };
     }
@@ -246,7 +244,7 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
                         let x = this.style.getPaddingLeft();
                         const n = autoWrap ? Math.max(1, this._uiscene._clipStringToWidth (line, this._layout.clientRect.width, charMargin, start, font)) : line.length;
                         for (let i = start; i < start + n; i++) {
-                            const glyph = this._uiscene._getGlyphInfo (line[i], font);
+                            const glyph = this._uiscene._getGlyphInfo (line[i], font, fontColor);
                             if (glyph) {
                                 const tex = this._uiscene._getGlyphTexture (glyph.atlasIndex);
                                 uvMin.x = glyph.uMin;
