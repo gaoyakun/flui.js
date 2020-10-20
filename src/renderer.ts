@@ -1,4 +1,4 @@
-import { Vec4, GUI, GUIMouseEvent } from '.';
+import { Vec4, GUI, GUIMouseEvent, GUIKeyEvent } from '.';
 
 export enum MouseButton {
     LEFT = 1<<0,
@@ -242,10 +242,18 @@ export class CanvasRenderer implements Renderer {
     injectEvents (gui: GUI): void {
         type MouseEventName = 'mousedown'|'mouseup'|'mousemove'|'click'|'dblclick';
         const mouseEventNames: MouseEventName[] = ['mousedown', 'mouseup', 'mousemove', 'click', 'dblclick'];
-        const rendererEventNames = [GUIMouseEvent.NAME_RENDERER_MOUSEDOWN, GUIMouseEvent.NAME_RENDERER_MOUSEUP, GUIMouseEvent.NAME_RENDERER_MOUSEMOVE, GUIMouseEvent.NAME_RENDERER_MOUSECLICK, GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK];
+        const rendererMouseEventNames = [GUIMouseEvent.NAME_RENDERER_MOUSEDOWN, GUIMouseEvent.NAME_RENDERER_MOUSEUP, GUIMouseEvent.NAME_RENDERER_MOUSEMOVE, GUIMouseEvent.NAME_RENDERER_MOUSECLICK, GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK];
         for (let i = 0; i < mouseEventNames.length; i++) {
             this._canvas.addEventListener (mouseEventNames[i], (evt: MouseEvent) => {
-                gui.dispatchEvent (this._createMouseEvent (rendererEventNames[i], evt));
+                gui.dispatchEvent (this._createMouseEvent (rendererMouseEventNames[i], evt));
+            });
+        }
+        type KeyEventName = 'keydown'|'keyup'|'keypress';
+        const keyEventNames: KeyEventName[] = ['keydown', 'keyup', 'keypress'];
+        const rendererKeyEventNames = [GUIKeyEvent.NAME_RENDERER_KEYDOWN, GUIKeyEvent.NAME_RENDERER_KEYUP, GUIKeyEvent.NAME_RENDERER_KEYPRESS];
+        for (let i = 0; i < keyEventNames.length; i++) {
+            this._canvas.addEventListener (keyEventNames[i], (evt: KeyboardEvent) => {
+                gui.dispatchEvent (this._createKeyEvent (rendererKeyEventNames[i], evt));
             });
         }
     }
@@ -253,23 +261,26 @@ export class CanvasRenderer implements Renderer {
     }
     endRender (): void {
     }
-    private _createMouseEvent (type: string, src: MouseEvent): GUIMouseEvent {
-        const x = src.offsetX;
-        const y = src.offsetY;
-        const button = buttonMap[src.button];
+    private _getKeyMod (evt: MouseEvent|KeyboardEvent): number {
         let keymod = 0;
-        if (src.shiftKey) {
+        if (evt.shiftKey) {
             keymod |= KeyMod.SHIFT;
         }
-        if (src.altKey) {
+        if (evt.altKey) {
             keymod |= KeyMod.ALT;
         }
-        if (src.ctrlKey) {
+        if (evt.ctrlKey) {
             keymod |= KeyMod.CTRL;
         }
-        if (src.metaKey) {
+        if (evt.metaKey) {
             keymod |= KeyMod.META;
         }
-        return new GUIMouseEvent (type, x, y, button, keymod);
+        return keymod;
+    }
+    private _createMouseEvent (type: string, src: MouseEvent): GUIMouseEvent {
+        return new GUIMouseEvent (type, src.offsetX, src.offsetY, buttonMap[src.button], this._getKeyMod(src));
+    }
+    private _createKeyEvent (type: string, src: KeyboardEvent): GUIKeyEvent {
+        return new GUIKeyEvent (type, src.keyCode, src.code, src.charCode, src.repeat, this._getKeyMod(src));        
     }
 }

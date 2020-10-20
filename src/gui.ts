@@ -61,11 +61,11 @@ const deviceMouseEvents = {
     [GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK]: GUIMouseEvent.NAME_MOUSEDBLCLICK
 };
 
-const deviceKeyEvents = [
-    GUIKeyEvent.NAME_KEYDOWN,
-    GUIKeyEvent.NAME_KEYUP,
-    GUIKeyEvent.NAME_KEYPRESS
-];
+const deviceKeyEvents = {
+    [GUIKeyEvent.NAME_RENDERER_KEYDOWN]: GUIKeyEvent.NAME_KEYDOWN,
+    [GUIKeyEvent.NAME_RENDERER_KEYUP]: GUIKeyEvent.NAME_KEYUP,
+    [GUIKeyEvent.NAME_RENDERER_KEYPRESS]: GUIKeyEvent.NAME_KEYPRESS
+};
 
 @eventtarget()
 export class GUI {
@@ -225,19 +225,11 @@ export class GUI {
                 }
             });
         }
-        for (const evt of deviceKeyEvents) {
+        for (const evt in deviceKeyEvents) {
             this.addEventListener (evt, function (this: GUI, e: Event) {
                 const keyEvent = e as GUIKeyEvent;
                 if (this._focusElement && this._focusElement.enabled) {
-                    let node = this._focusElement;
-                    while (node) {
-                        const ke = new GUIKeyEvent (evt, keyEvent.key, keyEvent.name, keyEvent.charCode, keyEvent.repeat, keyEvent.keymod);
-                        node.dispatchEvent (ke);
-                        if (ke.cancelBubble) {
-                            break;
-                        }
-                        node = node.parentNode;
-                    }
+                    this._focusElement.dispatchEvent (new GUIKeyEvent (evt, keyEvent.key, keyEvent.name, keyEvent.charCode, keyEvent.repeat, keyEvent.keymod));
                 }
             });
         }

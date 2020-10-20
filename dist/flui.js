@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "8dda003c526fefb31bea";
+/******/ 	var hotCurrentHash = "99728fdde1f25dc58916";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -3412,7 +3412,7 @@ var Input = function (_1$RMLElement) {
   }, {
     key: "_calcCursorPos",
     value: function _calcCursorPos(pos) {
-      var x = this.style.getPaddingLeft();
+      var x = this.getClientRect().x;
 
       for (var i = 0; i < pos; i++) {
         var width = this._uiscene._getCharWidth(this._text.textContent[i], this._getCachedFont());
@@ -3436,7 +3436,7 @@ var Input = function (_1$RMLElement) {
         });
         this._cursorBatch = new __1.RMLPrimitiveBatchList(v.x, v.y);
 
-        this._cursorBatch.addPrimitive(new __1.RMLRectPrimitive(x, this.style.getPaddingTop() - 2, 1, this._getCachedFont().size + 4, 0, 0, 0, 0), clipper, null, this._getCachedFontColor());
+        this._cursorBatch.addPrimitive(new __1.RMLRectPrimitive(x, this.getClientRect().y - 2, 1, this.getClientRect().height, 0, 0, 0, 0), clipper, null, this._getCachedFontColor());
       }
     }
   }, {
@@ -5707,6 +5707,9 @@ var GUIKeyEvent = function (_$Event2) {
 }(_1.Event);
 
 exports.GUIKeyEvent = GUIKeyEvent;
+GUIKeyEvent.NAME_RENDERER_KEYDOWN = 'rendererkeydown';
+GUIKeyEvent.NAME_RENDERER_KEYUP = 'rendererkeyup';
+GUIKeyEvent.NAME_RENDERER_KEYPRESS = 'rendererkeypress';
 GUIKeyEvent.NAME_KEYDOWN = 'keydown';
 GUIKeyEvent.NAME_KEYUP = 'keyup';
 GUIKeyEvent.NAME_KEYPRESS = 'keypress';
@@ -6399,7 +6402,7 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _typeof2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/typeof */ "../node_modules/@babel/runtime/helpers/typeof.js"));
 
-var _deviceMouseEvents;
+var _deviceMouseEvents, _deviceKeyEvents;
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e5) { throw _e5; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e6) { didErr = true; err = _e6; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
@@ -6525,7 +6528,7 @@ function tagname(name) {
 
 exports.tagname = tagname;
 var deviceMouseEvents = (_deviceMouseEvents = {}, (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSEDOWN, _1.GUIMouseEvent.NAME_MOUSEDOWN), (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSEUP, _1.GUIMouseEvent.NAME_MOUSEUP), (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSEMOVE, _1.GUIMouseEvent.NAME_MOUSEMOVE), (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSECLICK, _1.GUIMouseEvent.NAME_MOUSECLICK), (0, _defineProperty2.default)(_deviceMouseEvents, _1.GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK, _1.GUIMouseEvent.NAME_MOUSEDBLCLICK), _deviceMouseEvents);
-var deviceKeyEvents = [_1.GUIKeyEvent.NAME_KEYDOWN, _1.GUIKeyEvent.NAME_KEYUP, _1.GUIKeyEvent.NAME_KEYPRESS];
+var deviceKeyEvents = (_deviceKeyEvents = {}, (0, _defineProperty2.default)(_deviceKeyEvents, _1.GUIKeyEvent.NAME_RENDERER_KEYDOWN, _1.GUIKeyEvent.NAME_KEYDOWN), (0, _defineProperty2.default)(_deviceKeyEvents, _1.GUIKeyEvent.NAME_RENDERER_KEYUP, _1.GUIKeyEvent.NAME_KEYUP), (0, _defineProperty2.default)(_deviceKeyEvents, _1.GUIKeyEvent.NAME_RENDERER_KEYPRESS, _1.GUIKeyEvent.NAME_KEYPRESS), _deviceKeyEvents);
 
 var GUI = function () {
   function GUI(renderer, bounds) {
@@ -6630,7 +6633,7 @@ var GUI = function () {
             this._renderer.setCursorStyle('default');
           }
 
-          var _loop2 = function _loop2(i) {
+          var _loop3 = function _loop3(i) {
             var info = _this3._hoverElements[i];
 
             if (!hits.find(function (hit) {
@@ -6650,10 +6653,10 @@ var GUI = function () {
           };
 
           for (var i = 0; i < this._hoverElements.length; i++) {
-            _loop2(i);
+            _loop3(i);
           }
 
-          var _loop3 = function _loop3(_i) {
+          var _loop4 = function _loop4(_i) {
             var info = hits[_i];
 
             if (!_this3._hoverElements.find(function (hit) {
@@ -6668,7 +6671,7 @@ var GUI = function () {
           };
 
           for (var _i = 0; _i < hits.length; _i++) {
-            _loop3(_i);
+            _loop4(_i);
           }
 
           var lastHover = this._hoverElements.length > 0 ? this._hoverElements[0] : null;
@@ -6711,12 +6714,12 @@ var GUI = function () {
             }
           }
 
-          var _iterator4 = _createForOfIteratorHelper(this._hoverElements),
-              _step4;
+          var _iterator3 = _createForOfIteratorHelper(this._hoverElements),
+              _step3;
 
           try {
-            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-              var info = _step4.value;
+            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+              var info = _step3.value;
 
               if (!info.element.enabled) {
                 continue;
@@ -6730,9 +6733,9 @@ var GUI = function () {
               }
             }
           } catch (err) {
-            _iterator4.e(err);
+            _iterator3.e(err);
           } finally {
-            _iterator4.f();
+            _iterator3.f();
           }
         }
       });
@@ -6742,40 +6745,18 @@ var GUI = function () {
       _loop(evt);
     }
 
-    var _iterator2 = _createForOfIteratorHelper(deviceKeyEvents),
-        _step2;
+    var _loop2 = function _loop2(_evt) {
+      _this2.addEventListener(_evt, function (e) {
+        var keyEvent = e;
 
-    try {
-      var _loop4 = function _loop4() {
-        var evt = _step2.value;
+        if (this._focusElement && this._focusElement.enabled) {
+          this._focusElement.dispatchEvent(new _1.GUIKeyEvent(_evt, keyEvent.key, keyEvent.name, keyEvent.charCode, keyEvent.repeat, keyEvent.keymod));
+        }
+      });
+    };
 
-        _this2.addEventListener(evt, function (e) {
-          var keyEvent = e;
-
-          if (this._focusElement && this._focusElement.enabled) {
-            var node = this._focusElement;
-
-            while (node) {
-              var ke = new _1.GUIKeyEvent(evt, keyEvent.key, keyEvent.name, keyEvent.charCode, keyEvent.repeat, keyEvent.keymod);
-              node.dispatchEvent(ke);
-
-              if (ke.cancelBubble) {
-                break;
-              }
-
-              node = node.parentNode;
-            }
-          }
-        });
-      };
-
-      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-        _loop4();
-      }
-    } catch (err) {
-      _iterator2.e(err);
-    } finally {
-      _iterator2.f();
+    for (var _evt in deviceKeyEvents) {
+      _loop2(_evt);
     }
 
     var domChangeFunc = function domChangeFunc(e) {
@@ -6795,19 +6776,19 @@ var GUI = function () {
           var linkElements = el.tagName === 'link' ? [data.target] : [];
           linkElements = [].concat((0, _toConsumableArray2.default)(linkElements), (0, _toConsumableArray2.default)(el.querySelectorAll('link').values()));
 
-          var _iterator3 = _createForOfIteratorHelper(linkElements),
-              _step3;
+          var _iterator2 = _createForOfIteratorHelper(linkElements),
+              _step2;
 
           try {
-            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-              var _el = _step3.value;
+            for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+              var _el = _step2.value;
 
               this._importLinkContent(_el);
             }
           } catch (err) {
-            _iterator3.e(err);
+            _iterator2.e(err);
           } finally {
-            _iterator3.f();
+            _iterator2.f();
           }
         }
       }
@@ -6902,21 +6883,21 @@ var GUI = function () {
         } else {
           var validElements = [];
 
-          var _iterator5 = _createForOfIteratorHelper(this._styleRefreshList),
-              _step5;
+          var _iterator4 = _createForOfIteratorHelper(this._styleRefreshList),
+              _step4;
 
           try {
-            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-              var e = _step5.value;
+            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+              var e = _step4.value;
 
               if (e.nodeType === _1.RMLNode.ELEMENT_NODE && e.tagName !== 'style' && e._isSucceedingOf(this._document)) {
                 validElements.push(e);
               }
             }
           } catch (err) {
-            _iterator5.e(err);
+            _iterator4.e(err);
           } finally {
-            _iterator5.f();
+            _iterator4.f();
           }
 
           this._styleRefreshList = validElements;
@@ -6931,26 +6912,26 @@ var GUI = function () {
             var processedElements = new Set();
             var ruleList = (0, _toConsumableArray2.default)(_this4._ruleListImported);
 
-            var _iterator6 = _createForOfIteratorHelper(styleElements.values()),
-                _step6;
+            var _iterator5 = _createForOfIteratorHelper(styleElements.values()),
+                _step5;
 
             try {
-              for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-                var el = _step6.value;
+              for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+                var el = _step5.value;
 
-                var _iterator12 = _createForOfIteratorHelper(el.definitions),
-                    _step12;
+                var _iterator11 = _createForOfIteratorHelper(el.definitions),
+                    _step11;
 
                 try {
-                  for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
-                    var def = _step12.value;
+                  for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
+                    var def = _step11.value;
 
-                    var _iterator13 = _createForOfIteratorHelper(def.selector.rules()),
-                        _step13;
+                    var _iterator12 = _createForOfIteratorHelper(def.selector.rules()),
+                        _step12;
 
                     try {
-                      for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
-                        var rule = _step13.value;
+                      for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
+                        var rule = _step12.value;
                         ruleList.push({
                           rule: rule,
                           stylesheet: def.stylesheet,
@@ -6958,21 +6939,21 @@ var GUI = function () {
                         });
                       }
                     } catch (err) {
-                      _iterator13.e(err);
+                      _iterator12.e(err);
                     } finally {
-                      _iterator13.f();
+                      _iterator12.f();
                     }
                   }
                 } catch (err) {
-                  _iterator12.e(err);
+                  _iterator11.e(err);
                 } finally {
-                  _iterator12.f();
+                  _iterator11.f();
                 }
               }
             } catch (err) {
-              _iterator6.e(err);
+              _iterator5.e(err);
             } finally {
-              _iterator6.f();
+              _iterator5.f();
             }
 
             var allElements = null;
@@ -6991,12 +6972,12 @@ var GUI = function () {
                 return a.rule.specificity - b.rule.specificity;
               });
 
-              var _iterator7 = _createForOfIteratorHelper(ruleList),
-                  _step7;
+              var _iterator6 = _createForOfIteratorHelper(ruleList),
+                  _step6;
 
               try {
                 var _loop5 = function _loop5() {
-                  var rule = _step7.value;
+                  var rule = _step6.value;
                   rule.rule.resolve(_this4._styleRefreshList, true, true, function (node, type) {
                     var pseudoTypes = pseudoMap.get(node) || new Map();
                     pseudoMap.set(node, pseudoTypes);
@@ -7008,12 +6989,12 @@ var GUI = function () {
                     });
                   });
 
-                  var _iterator8 = _createForOfIteratorHelper(rule.rule.targets),
-                      _step8;
+                  var _iterator7 = _createForOfIteratorHelper(rule.rule.targets),
+                      _step7;
 
                   try {
-                    for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-                      var _e2 = _step8.value;
+                    for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+                      var _e2 = _step7.value;
 
                       if (_e2.nodeType !== _1.RMLNode.DOCUMENT_NODE) {
                         if (!processedElements.has(_e2)) {
@@ -7028,38 +7009,38 @@ var GUI = function () {
                       _e2._updatePseudoElementStyles(pseudoMap.get(_e2));
                     }
                   } catch (err) {
-                    _iterator8.e(err);
+                    _iterator7.e(err);
                   } finally {
-                    _iterator8.f();
+                    _iterator7.f();
                   }
 
                   if (!_this4._styleFullRefresh) {
-                    var _iterator9 = _createForOfIteratorHelper(pseudoMap),
-                        _step9;
+                    var _iterator8 = _createForOfIteratorHelper(pseudoMap),
+                        _step8;
 
                     try {
-                      for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-                        var _e = _step9.value;
+                      for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+                        var _e = _step8.value;
 
                         _e[0]._updatePseudoElementStyles(_e[1]);
                       }
                     } catch (err) {
-                      _iterator9.e(err);
+                      _iterator8.e(err);
                     } finally {
-                      _iterator9.f();
+                      _iterator8.f();
                     }
 
                     pseudoMap.clear();
                   }
                 };
 
-                for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+                for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
                   _loop5();
                 }
               } catch (err) {
-                _iterator7.e(err);
+                _iterator6.e(err);
               } finally {
-                _iterator7.f();
+                _iterator6.f();
               }
 
               processedElements.forEach(function (e) {
@@ -7068,12 +7049,12 @@ var GUI = function () {
             }
 
             if (_this4._styleFullRefresh) {
-              var _iterator10 = _createForOfIteratorHelper(allElements),
-                  _step10;
+              var _iterator9 = _createForOfIteratorHelper(allElements),
+                  _step9;
 
               try {
-                for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
-                  var _e3 = _step10.value;
+                for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+                  var _e3 = _step9.value;
 
                   if (!processedElements.has(_e3)) {
                     _e3._resetStyle();
@@ -7084,17 +7065,17 @@ var GUI = function () {
                   _e3._updatePseudoElementStyles(pseudoMap.get(_e3));
                 }
               } catch (err) {
-                _iterator10.e(err);
+                _iterator9.e(err);
               } finally {
-                _iterator10.f();
+                _iterator9.f();
               }
             } else {
-              var _iterator11 = _createForOfIteratorHelper(_this4._styleRefreshList),
-                  _step11;
+              var _iterator10 = _createForOfIteratorHelper(_this4._styleRefreshList),
+                  _step10;
 
               try {
-                for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
-                  var _e4 = _step11.value;
+                for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+                  var _e4 = _step10.value;
 
                   if (!processedElements.has(_e4)) {
                     _e4._resetStyle();
@@ -7103,9 +7084,9 @@ var GUI = function () {
                   }
                 }
               } catch (err) {
-                _iterator11.e(err);
+                _iterator10.e(err);
               } finally {
-                _iterator11.f();
+                _iterator10.f();
               }
             }
 
@@ -7182,7 +7163,7 @@ var GUI = function () {
     key: "deserializeFromXML",
     value: function deserializeFromXML(xml) {
       return __awaiter(this, void 0, void 0, _regenerator.default.mark(function _callee() {
-        var parser, dom, docElement, linkElements, promises, _iterator14, _step14, link;
+        var parser, dom, docElement, linkElements, promises, _iterator13, _step13, link;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -7211,17 +7192,17 @@ var GUI = function () {
 
                 linkElements = this._document.querySelectorAll('link');
                 promises = [];
-                _iterator14 = _createForOfIteratorHelper(linkElements.values());
+                _iterator13 = _createForOfIteratorHelper(linkElements.values());
 
                 try {
-                  for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
-                    link = _step14.value;
+                  for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
+                    link = _step13.value;
                     promises.push(this._importLinkContent(link));
                   }
                 } catch (err) {
-                  _iterator14.e(err);
+                  _iterator13.e(err);
                 } finally {
-                  _iterator14.f();
+                  _iterator13.f();
                 }
 
                 _context.next = 14;
@@ -7345,12 +7326,12 @@ var GUI = function () {
         return root;
       }
 
-      var _iterator15 = _createForOfIteratorHelper(root.childNodes.values()),
-          _step15;
+      var _iterator14 = _createForOfIteratorHelper(root.childNodes.values()),
+          _step14;
 
       try {
-        for (_iterator15.s(); !(_step15 = _iterator15.n()).done;) {
-          var child = _step15.value;
+        for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
+          var child = _step14.value;
 
           var e = this._getElementById(child, id);
 
@@ -7359,9 +7340,9 @@ var GUI = function () {
           }
         }
       } catch (err) {
-        _iterator15.e(err);
+        _iterator14.e(err);
       } finally {
-        _iterator15.f();
+        _iterator14.f();
       }
 
       return null;
@@ -7373,19 +7354,19 @@ var GUI = function () {
         results.push(root);
       }
 
-      var _iterator16 = _createForOfIteratorHelper(root.childNodes.values()),
-          _step16;
+      var _iterator15 = _createForOfIteratorHelper(root.childNodes.values()),
+          _step15;
 
       try {
-        for (_iterator16.s(); !(_step16 = _iterator16.n()).done;) {
-          var child = _step16.value;
+        for (_iterator15.s(); !(_step15 = _iterator15.n()).done;) {
+          var child = _step15.value;
 
           this._getElementsByTagName(child, tagname, results);
         }
       } catch (err) {
-        _iterator16.e(err);
+        _iterator15.e(err);
       } finally {
-        _iterator16.f();
+        _iterator15.f();
       }
 
       return null;
@@ -7397,12 +7378,12 @@ var GUI = function () {
         var matched = true;
         var el = root;
 
-        var _iterator17 = _createForOfIteratorHelper(classnames),
-            _step17;
+        var _iterator16 = _createForOfIteratorHelper(classnames),
+            _step16;
 
         try {
-          for (_iterator17.s(); !(_step17 = _iterator17.n()).done;) {
-            var classname = _step17.value;
+          for (_iterator16.s(); !(_step16 = _iterator16.n()).done;) {
+            var classname = _step16.value;
 
             if (!el.classList.contains(classname)) {
               matched = false;
@@ -7410,9 +7391,9 @@ var GUI = function () {
             }
           }
         } catch (err) {
-          _iterator17.e(err);
+          _iterator16.e(err);
         } finally {
-          _iterator17.f();
+          _iterator16.f();
         }
 
         if (matched) {
@@ -7420,19 +7401,19 @@ var GUI = function () {
         }
       }
 
-      var _iterator18 = _createForOfIteratorHelper(root.childNodes.values()),
-          _step18;
+      var _iterator17 = _createForOfIteratorHelper(root.childNodes.values()),
+          _step17;
 
       try {
-        for (_iterator18.s(); !(_step18 = _iterator18.n()).done;) {
-          var child = _step18.value;
+        for (_iterator17.s(); !(_step17 = _iterator17.n()).done;) {
+          var child = _step17.value;
 
           this._getElementsByClassName(child, classnames, results);
         }
       } catch (err) {
-        _iterator18.e(err);
+        _iterator17.e(err);
       } finally {
-        _iterator18.f();
+        _iterator17.f();
       }
 
       return null;
@@ -7448,7 +7429,7 @@ var GUI = function () {
     key: "_importRuleListFromURL",
     value: function _importRuleListFromURL(url) {
       return __awaiter(this, void 0, void 0, _regenerator.default.mark(function _callee3() {
-        var content, entries, _iterator19, _step19, def, _iterator20, _step20, rule;
+        var content, entries, _iterator18, _step18, def, _iterator19, _step19, rule;
 
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
@@ -7462,16 +7443,16 @@ var GUI = function () {
 
                 if (content) {
                   entries = this._parseStyleContent(content);
-                  _iterator19 = _createForOfIteratorHelper(entries);
+                  _iterator18 = _createForOfIteratorHelper(entries);
 
                   try {
-                    for (_iterator19.s(); !(_step19 = _iterator19.n()).done;) {
-                      def = _step19.value;
-                      _iterator20 = _createForOfIteratorHelper(def.selector.rules());
+                    for (_iterator18.s(); !(_step18 = _iterator18.n()).done;) {
+                      def = _step18.value;
+                      _iterator19 = _createForOfIteratorHelper(def.selector.rules());
 
                       try {
-                        for (_iterator20.s(); !(_step20 = _iterator20.n()).done;) {
-                          rule = _step20.value;
+                        for (_iterator19.s(); !(_step19 = _iterator19.n()).done;) {
+                          rule = _step19.value;
 
                           this._ruleListImported.push({
                             rule: rule,
@@ -7480,15 +7461,15 @@ var GUI = function () {
                           });
                         }
                       } catch (err) {
-                        _iterator20.e(err);
+                        _iterator19.e(err);
                       } finally {
-                        _iterator20.f();
+                        _iterator19.f();
                       }
                     }
                   } catch (err) {
-                    _iterator19.e(err);
+                    _iterator18.e(err);
                   } finally {
-                    _iterator19.f();
+                    _iterator18.f();
                   }
                 }
 
@@ -7545,13 +7526,27 @@ var GUI = function () {
     value: function _deserializeElement(el) {
       var element = this.createElement(el.tagName.toLowerCase());
 
-      var _iterator21 = _createForOfIteratorHelper(el.attributes),
+      var _iterator20 = _createForOfIteratorHelper(el.attributes),
+          _step20;
+
+      try {
+        for (_iterator20.s(); !(_step20 = _iterator20.n()).done;) {
+          var attr = _step20.value;
+          element.setAttribute(attr.name, attr.value);
+        }
+      } catch (err) {
+        _iterator20.e(err);
+      } finally {
+        _iterator20.f();
+      }
+
+      var _iterator21 = _createForOfIteratorHelper(el.classList),
           _step21;
 
       try {
         for (_iterator21.s(); !(_step21 = _iterator21.n()).done;) {
-          var attr = _step21.value;
-          element.setAttribute(attr.name, attr.value);
+          var className = _step21.value;
+          element.classList.add(className);
         }
       } catch (err) {
         _iterator21.e(err);
@@ -7559,26 +7554,12 @@ var GUI = function () {
         _iterator21.f();
       }
 
-      var _iterator22 = _createForOfIteratorHelper(el.classList),
+      var _iterator22 = _createForOfIteratorHelper(el.childNodes),
           _step22;
 
       try {
         for (_iterator22.s(); !(_step22 = _iterator22.n()).done;) {
-          var className = _step22.value;
-          element.classList.add(className);
-        }
-      } catch (err) {
-        _iterator22.e(err);
-      } finally {
-        _iterator22.f();
-      }
-
-      var _iterator23 = _createForOfIteratorHelper(el.childNodes),
-          _step23;
-
-      try {
-        for (_iterator23.s(); !(_step23 = _iterator23.n()).done;) {
-          var child = _step23.value;
+          var child = _step22.value;
 
           if (child.nodeType === Node.TEXT_NODE) {
             var text = child.textContent.trim().replace(/\s+/, ' ');
@@ -7591,9 +7572,9 @@ var GUI = function () {
           }
         }
       } catch (err) {
-        _iterator23.e(err);
+        _iterator22.e(err);
       } finally {
-        _iterator23.f();
+        _iterator22.f();
       }
 
       return element;
@@ -7648,12 +7629,12 @@ var GUI = function () {
   }, {
     key: "_buildDOM",
     value: function _buildDOM(root, doc, parent) {
-      var _iterator24 = _createForOfIteratorHelper(root.childNodes.values()),
-          _step24;
+      var _iterator23 = _createForOfIteratorHelper(root.childNodes.values()),
+          _step23;
 
       try {
-        for (_iterator24.s(); !(_step24 = _iterator24.n()).done;) {
-          var child = _step24.value;
+        for (_iterator23.s(); !(_step23 = _iterator23.n()).done;) {
+          var child = _step23.value;
 
           if (!child._isInternal()) {
             var childElement = this._createDOMElement(child, doc, null);
@@ -7666,9 +7647,9 @@ var GUI = function () {
           }
         }
       } catch (err) {
-        _iterator24.e(err);
+        _iterator23.e(err);
       } finally {
-        _iterator24.f();
+        _iterator23.f();
       }
     }
   }, {
@@ -7683,18 +7664,18 @@ var GUI = function () {
           out.className = el.className;
         }
 
-        var _iterator25 = _createForOfIteratorHelper(el.attributes),
-            _step25;
+        var _iterator24 = _createForOfIteratorHelper(el.attributes),
+            _step24;
 
         try {
-          for (_iterator25.s(); !(_step25 = _iterator25.n()).done;) {
-            var k = _step25.value;
+          for (_iterator24.s(); !(_step24 = _iterator24.n()).done;) {
+            var k = _step24.value;
             out.setAttribute(k.name, k.value);
           }
         } catch (err) {
-          _iterator25.e(err);
+          _iterator24.e(err);
         } finally {
-          _iterator25.f();
+          _iterator24.f();
         }
       }
 
@@ -13227,16 +13208,29 @@ var CanvasRenderer = function () {
       var _this = this;
 
       var mouseEventNames = ['mousedown', 'mouseup', 'mousemove', 'click', 'dblclick'];
-      var rendererEventNames = [_1.GUIMouseEvent.NAME_RENDERER_MOUSEDOWN, _1.GUIMouseEvent.NAME_RENDERER_MOUSEUP, _1.GUIMouseEvent.NAME_RENDERER_MOUSEMOVE, _1.GUIMouseEvent.NAME_RENDERER_MOUSECLICK, _1.GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK];
+      var rendererMouseEventNames = [_1.GUIMouseEvent.NAME_RENDERER_MOUSEDOWN, _1.GUIMouseEvent.NAME_RENDERER_MOUSEUP, _1.GUIMouseEvent.NAME_RENDERER_MOUSEMOVE, _1.GUIMouseEvent.NAME_RENDERER_MOUSECLICK, _1.GUIMouseEvent.NAME_RENDERER_MOUSEDBLCLICK];
 
       var _loop = function _loop(i) {
         _this._canvas.addEventListener(mouseEventNames[i], function (evt) {
-          gui.dispatchEvent(_this._createMouseEvent(rendererEventNames[i], evt));
+          gui.dispatchEvent(_this._createMouseEvent(rendererMouseEventNames[i], evt));
         });
       };
 
       for (var i = 0; i < mouseEventNames.length; i++) {
         _loop(i);
+      }
+
+      var keyEventNames = ['keydown', 'keyup', 'keypress'];
+      var rendererKeyEventNames = [_1.GUIKeyEvent.NAME_RENDERER_KEYDOWN, _1.GUIKeyEvent.NAME_RENDERER_KEYUP, _1.GUIKeyEvent.NAME_RENDERER_KEYPRESS];
+
+      var _loop2 = function _loop2(_i) {
+        _this._canvas.addEventListener(keyEventNames[_i], function (evt) {
+          gui.dispatchEvent(_this._createKeyEvent(rendererKeyEventNames[_i], evt));
+        });
+      };
+
+      for (var _i = 0; _i < keyEventNames.length; _i++) {
+        _loop2(_i);
       }
     }
   }, {
@@ -13246,30 +13240,37 @@ var CanvasRenderer = function () {
     key: "endRender",
     value: function endRender() {}
   }, {
-    key: "_createMouseEvent",
-    value: function _createMouseEvent(type, src) {
-      var x = src.offsetX;
-      var y = src.offsetY;
-      var button = buttonMap[src.button];
+    key: "_getKeyMod",
+    value: function _getKeyMod(evt) {
       var keymod = 0;
 
-      if (src.shiftKey) {
+      if (evt.shiftKey) {
         keymod |= KeyMod.SHIFT;
       }
 
-      if (src.altKey) {
+      if (evt.altKey) {
         keymod |= KeyMod.ALT;
       }
 
-      if (src.ctrlKey) {
+      if (evt.ctrlKey) {
         keymod |= KeyMod.CTRL;
       }
 
-      if (src.metaKey) {
+      if (evt.metaKey) {
         keymod |= KeyMod.META;
       }
 
-      return new _1.GUIMouseEvent(type, x, y, button, keymod);
+      return keymod;
+    }
+  }, {
+    key: "_createMouseEvent",
+    value: function _createMouseEvent(type, src) {
+      return new _1.GUIMouseEvent(type, src.offsetX, src.offsetY, buttonMap[src.button], this._getKeyMod(src));
+    }
+  }, {
+    key: "_createKeyEvent",
+    value: function _createKeyEvent(type, src) {
+      return new _1.GUIKeyEvent(type, src.keyCode, src.code, src.charCode, src.repeat, this._getKeyMod(src));
     }
   }]);
   return CanvasRenderer;

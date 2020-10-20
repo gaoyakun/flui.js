@@ -516,6 +516,9 @@ declare module 'flui/events' {
         constructor(type: string, x: number, y: number, button: number, keymod: number);
     }
     export class GUIKeyEvent extends Event {
+        static readonly NAME_RENDERER_KEYDOWN = "rendererkeydown";
+        static readonly NAME_RENDERER_KEYUP = "rendererkeyup";
+        static readonly NAME_RENDERER_KEYPRESS = "rendererkeypress";
         static readonly NAME_KEYDOWN = "keydown";
         static readonly NAME_KEYUP = "keyup";
         static readonly NAME_KEYPRESS = "keypress";

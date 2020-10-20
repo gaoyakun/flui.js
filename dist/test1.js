@@ -63,7 +63,7 @@
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "876f327de7174bafb23f";
+/******/ 	var hotCurrentHash = "5428d7b0094dc1e07619";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -877,7 +877,7 @@ var flui_1 = __webpack_require__(/*! flui */ "flui");
 
 var canvas = document.getElementById('canvas');
 var renderer = new flui_1.CanvasRenderer(canvas);
-var gui = new flui_1.GUI(renderer);
+var gui = window.gui = new flui_1.GUI(renderer);
 gui.deserializeFromXML(document.querySelector('#main-ui').innerHTML).then(function () {
   var bar3 = gui.document.querySelector('#bar3');
   var btnNewText = gui.document.querySelector('#new-text');

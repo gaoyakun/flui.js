@@ -4,7 +4,7 @@ import { CanvasRenderer, GUI } from 'flui';
 
 const canvas = document.getElementById ('canvas') as HTMLCanvasElement;
 const renderer = new CanvasRenderer (canvas);
-const gui = new GUI (renderer);
+const gui = (window as any).gui = new GUI (renderer);
 gui.deserializeFromXML (document.querySelector('#main-ui').innerHTML).then(()=>{
     const bar3 = gui.document.querySelector ('#bar3');
     const btnNewText = gui.document.querySelector ('#new-text');

@@ -223,7 +223,7 @@ export class Input extends RMLElement<Input> {
         this._setHiddenInputSelection (pos, pos);
     }
     private _calcCursorPos (pos: number): number {
-        let x = this.style.getPaddingLeft();
+        let x = this.getClientRect().x;
         for (let i = 0; i < pos; i++) {
             const width = this._uiscene._getCharWidth (this._text.textContent[i], this._getCachedFont());
             x += width + this._text.charMargin;
@@ -236,7 +236,7 @@ export class Input extends RMLElement<Input> {
             const x = this._calcCursorPos (this._selectionStart);
             const v = this.toAbsolute ({ x:0, y:0 });
             this._cursorBatch = new RMLPrimitiveBatchList (v.x, v.y);
-            this._cursorBatch.addPrimitive (new RMLRectPrimitive(x, this.style.getPaddingTop() - 2, 1, this._getCachedFont().size + 4, 0, 0, 0, 0), clipper, null, this._getCachedFontColor());
+            this._cursorBatch.addPrimitive (new RMLRectPrimitive(x, this.getClientRect().y - 2, 1, this.getClientRect().height, 0, 0, 0, 0), clipper, null, this._getCachedFontColor());
             // this._restartCursorTimer ();
         }
     }
