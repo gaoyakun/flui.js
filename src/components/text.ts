@@ -263,6 +263,15 @@ export class Text<U extends Text<any> = Text<any> > extends RMLNode<U> {
         }
     }
     /** @internal */
+    private _decode (str: string): string {
+        let tmp = str.replace (/</g, '&lt;')
+            .replace (/>/g, '&gt;')
+            .replace (/\s+/g, ' ');
+        var div = document.createElement ('div');
+        div.innerHTML = tmp;
+        return div.innerText;
+    }
+    /** @internal */
     private _splitContent (): string[] {
         const content = this.actualContent || '';
         const tab2space = Array.from({length:4}).map(()=>' ').join('');

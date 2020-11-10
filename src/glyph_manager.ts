@@ -30,9 +30,7 @@ export class GlyphManager extends AtlasManager<GlyphManager> {
     measureStringWidth (str: string, charMargin: number, font: Font) {
         let w = 0;
         for (let i = 0; i < str.length; i++) {
-            const margin = i === 0 ? 0 : charMargin;
-            const width = this.getCharWidth (str[i], font);
-            w += margin + width;
+            w += charMargin + this.getCharWidth (str[i], font);
         }
         return w;
     }
@@ -40,10 +38,7 @@ export class GlyphManager extends AtlasManager<GlyphManager> {
         let sum = 0;
         let i = start;
         for (; i < str.length; i++) {
-            const margin = i === start ? 0 : charMargin;
-            const width = this.getCharWidth (str[i], font);
-            const charWidth = margin + width;
-            sum += charWidth;
+            sum += charMargin + this.getCharWidth (str[i], font);
             if (sum > width) {
                 break;
             }
